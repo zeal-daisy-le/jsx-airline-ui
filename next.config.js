@@ -5,7 +5,10 @@ const { withSentryConfig } = require("@sentry/nextjs")
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: [],
+    // Serve AVIF first, then WebP, for maximum compression at equal quality
+    formats: ["image/avif", "image/webp"],
+    // No remote domains — all images are served from /public
+    remotePatterns: [],
   },
   async headers() {
     return [
