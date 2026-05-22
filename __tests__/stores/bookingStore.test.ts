@@ -360,4 +360,40 @@ describe("sessionStorage persistence", () => {
     expect(s.stepValidity.flights).toBe(true)
     expect(s.stepValidity.seats).toBe(false)
   })
+
+  it("_setHasHydrated sets hasHydrated to true", async () => {
+    act(() => {
+      useBookingStore.setState({ hasHydrated: false })
+      useBookingStore.getState()._setHasHydrated()
+    })
+    expect(useBookingStore.getState().hasHydrated).toBe(true)
+  })
+
+  it("hasHydrated becomes true after rehydration via onRehydrateStorage", async () => {
+    act(() => { useBookingStore.setState({ hasHydrated: false }) })
+    await useBookingStore.persist.rehydrate()
+    expect(useBookingStore.getState().hasHydrated).toBe(true)
+  })
+})
+
+// ─── bookingReference ────────────────────────────────────────────────────────
+
+describe("bookingReference", () => {
+  it("is null by default", () => {
+    act(() => { useBookingStore.getState().resetBooking() })
+    expect(useBookingStore.getState().bookingReference).toBeNull()
+  })
+
+  it("setBookingReference stores the reference", () => {
+    act(() => { useBookingStore.getState().setBookingReference("JSX-ABC123") })
+    expect(useBookingStore.getState().bookingReference).toBe("JSX-ABC123")
+  })
+
+  it("resetBooking clears bookingReference", () => {
+    act(() => {
+      useBookingStore.getState().setBookingReference("JSX-XYZ")
+      useBookingStore.getState().resetBooking()
+    })
+    expect(useBookingStore.getState().bookingReference).toBeNull()
+  })
 })
