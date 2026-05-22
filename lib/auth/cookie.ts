@@ -13,11 +13,11 @@ export function serializeCookie(
   value: string,
   options: SerializeCookieOptions = {},
 ): string {
-  let cookie = `${name}=${value}`
-  if (options.path) cookie += `; Path=${options.path}`
-  if (options.maxAge != null) cookie += `; Max-Age=${options.maxAge}`
+  let cookie = name + "=" + value
+  if (options.path) cookie += "; Path=" + options.path
+  if (options.maxAge != null) cookie += "; Max-Age=" + options.maxAge
   if (options.httpOnly) cookie += "; HttpOnly"
-  if (options.sameSite) cookie += `; SameSite=${options.sameSite}`
+  if (options.sameSite) cookie += "; SameSite=" + options.sameSite
   if (options.secure) cookie += "; Secure"
   return cookie
 }

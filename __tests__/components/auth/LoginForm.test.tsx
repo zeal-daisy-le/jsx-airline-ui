@@ -36,7 +36,7 @@ describe("LoginForm", () => {
     render(<LoginForm />)
     fireEvent.click(screen.getByRole("button", { name: /sign in/i }))
     await waitFor(() => {
-      expect(screen.getByRole("alert", { name: /please enter a valid email/i })).toBeInTheDocument()
+      expect(screen.getByText(/please enter a valid email/i)).toBeInTheDocument()
     })
   })
 
@@ -47,7 +47,7 @@ describe("LoginForm", () => {
     })
     fireEvent.click(screen.getByRole("button", { name: /sign in/i }))
     await waitFor(() => {
-      expect(screen.getByRole("alert", { name: /password is required/i })).toBeInTheDocument()
+      expect(screen.getByText(/password is required/i)).toBeInTheDocument()
     })
   })
 

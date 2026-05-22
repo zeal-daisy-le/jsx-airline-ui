@@ -8,9 +8,7 @@ beforeAll(() => {
   process.env.NAVITAIRE_API_URL = "https://navitaire.test"
 })
 
-afterEach(() => {
-  vi.restoreAllMocks()
-})
+afterEach(() => { vi.restoreAllMocks() })
 
 function mockReq(overrides: Partial<NextApiRequest> = {}): NextApiRequest {
   return {
@@ -24,29 +22,22 @@ function mockReq(overrides: Partial<NextApiRequest> = {}): NextApiRequest {
 function mockRes() {
   const calls: { method: string; args: unknown[] }[] = []
   const res: Record<string, unknown> = {}
-  res.status = (code: number) => {
-    calls.push({ method: "status", args: [code] })
-    return res
-  }
-  res.json = (body: unknown) => {
-    calls.push({ method: "json", args: [body] })
-    return res
-  }
-  res.setHeader = (name: string, value: unknown) => {
-    calls.push({ method: "setHeader", args: [name, value] })
-    return res
-  }
+  res.status = (code: number) => { calls.push({ method: "status", args: [code] }); return res }
+  res.json = (body: unknown) => { calls.push({ method: "json", args: [body] }); return res }
+  res.setHeader = (name: string, value: unknown) => { calls.push({ method: "setHeader", args: [name, value] }); return res }
   return { res: res as unknown as NextApiResponse, calls }
 }
 
-function navitaireOk(user = { id: "u1", email: "alice@jsx.com", firstName: "Alice", lastName: "Smith" }) {
+const NAV_USER = { id: "u1", email: "alice@jsx.com", firstName: "Alice", lastName: "Smith" }
+
+function navOk() {
   return vi.spyOn(global, "fetch").mockResolvedValue({
     ok: true,
-    json: async () => user,
+    json: async () => NAV_USER,
   } as Response)
 }
 
-function navitaireUnauthorised() {
+function navFail() {
   return vi.spyOn(global, "fetch").mockResolvedValue({
     ok: false,
     status: 401,
@@ -73,11 +64,10 @@ describe("POST /api/auth/login", () => {
     expect(calls).toContainEqual({ method: "status", args: [400] })
   })
 
-  it("issues an httpOnly JWT cookie on successful Navitaire auth", async () => {
-    navitaireOk()
+  it("issues an httpOnly JWT cookie on successful auth", async () => {
+    navOk()
     const { res, calls } = mockRes()
     await handler(mockReq(), res)
-
     const setCookie = calls.find((c) => c.method === "setHeader")
     expect(setCookie).toBeDefined()
     const value = String(setCookie?.args[1] ?? "")
@@ -87,14 +77,14 @@ describe("POST /api/auth/login", () => {
   })
 
   it("returns { ok: true } on successful login", async () => {
-    navitaireOk()
+    navOk()
     const { res, calls } = mockRes()
     await handler(mockReq(), res)
     expect(calls).toContainEqual({ method: "json", args: [{ ok: true }] })
   })
 
   it("returns 401 when Navitaire rejects the credentials", async () => {
-    navitaireUnauthorised()
+    navFail()
     const { res, calls } = mockRes()
     await handler(mockReq(), res)
     expect(calls).toContainEqual({ method: "status", args: [401] })
@@ -108,7 +98,7 @@ describe("POST /api/auth/login", () => {
   })
 
   it("never includes the raw password in any response body", async () => {
-    navitaireOk()
+    navOk()
     const { res, calls } = mockRes()
     await handler(mockReq(), res)
     const jsonCalls = calls.filter((c) => c.method === "json")

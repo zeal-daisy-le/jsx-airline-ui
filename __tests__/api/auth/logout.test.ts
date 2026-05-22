@@ -10,18 +10,9 @@ function mockReq(overrides: Partial<NextApiRequest> = {}): NextApiRequest {
 function mockRes() {
   const calls: { method: string; args: unknown[] }[] = []
   const res: Record<string, unknown> = {}
-  res.status = (code: number) => {
-    calls.push({ method: "status", args: [code] })
-    return res
-  }
-  res.json = (body: unknown) => {
-    calls.push({ method: "json", args: [body] })
-    return res
-  }
-  res.setHeader = (name: string, value: unknown) => {
-    calls.push({ method: "setHeader", args: [name, value] })
-    return res
-  }
+  res.status = (code: number) => { calls.push({ method: "status", args: [code] }); return res }
+  res.json = (body: unknown) => { calls.push({ method: "json", args: [body] }); return res }
+  res.setHeader = (name: string, value: unknown) => { calls.push({ method: "setHeader", args: [name, value] }); return res }
   return { res: res as unknown as NextApiResponse, calls }
 }
 
