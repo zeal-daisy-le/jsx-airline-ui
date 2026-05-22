@@ -65,27 +65,21 @@ describe("isValidOrigin", () => {
 })
 
 describe("getAllowedOrigins", () => {
-  const originalEnv = process.env
-
-  beforeEach(() => {
-    process.env = { ...originalEnv }
-  })
-
   afterEach(() => {
-    process.env = originalEnv
+    vi.unstubAllEnvs()
   })
 
   it("includes NEXT_PUBLIC_APP_URL when set", () => {
-    process.env.NEXT_PUBLIC_APP_URL = "https://jsx.com"
-    process.env.NODE_ENV = "production"
+    vi.stubEnv(\"NEXT_PUBLIC_APP_URL\", \1)
+    vi.stubEnv("NODE_ENV", "production")
     delete process.env.VERCEL_URL
     const origins = getAllowedOrigins()
     expect(origins).toContain("https://jsx.com")
   })
 
   it("strips trailing slash from NEXT_PUBLIC_APP_URL", () => {
-    process.env.NEXT_PUBLIC_APP_URL = "https://jsx.com/"
-    process.env.NODE_ENV = "production"
+    vi.stubEnv(\"NEXT_PUBLIC_APP_URL\", \1)
+    vi.stubEnv("NODE_ENV", "production")
     delete process.env.VERCEL_URL
     const origins = getAllowedOrigins()
     expect(origins).toContain("https://jsx.com")
@@ -94,20 +88,20 @@ describe("getAllowedOrigins", () => {
 
   it("includes https://VERCEL_URL when set", () => {
     process.env.VERCEL_URL = "jsx-preview.vercel.app"
-    process.env.NODE_ENV = "production"
+    vi.stubEnv("NODE_ENV", "production")
     const origins = getAllowedOrigins()
     expect(origins).toContain("https://jsx-preview.vercel.app")
   })
 
   it("includes localhost in non-production environments", () => {
-    process.env.NODE_ENV = "development"
+    vi.stubEnv("NODE_ENV", "development")
     const origins = getAllowedOrigins()
     expect(origins).toContain("http://localhost:3000")
     expect(origins).toContain("http://localhost:3001")
   })
 
   it("excludes localhost in production", () => {
-    process.env.NODE_ENV = "production"
+    vi.stubEnv("NODE_ENV", "production")
     delete process.env.VERCEL_URL
     delete process.env.NEXT_PUBLIC_APP_URL
     const origins = getAllowedOrigins()
