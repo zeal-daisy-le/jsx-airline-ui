@@ -51,6 +51,7 @@ const mockDestination: Destination = {
   city: "Dallas",
   state: "TX",
   airport: "DAL",
+  airportName: "Dallas Love Field",
   tagline: "Where every flight begins",
   imageUrl: "/images/destinations/dallas.jpg",
   imageAlt: "Dallas skyline at dusk",
