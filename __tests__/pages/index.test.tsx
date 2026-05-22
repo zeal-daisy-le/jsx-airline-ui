@@ -27,17 +27,15 @@ vi.mock("framer-motion", async () => {
           </div>
         )
       ),
-      article: ({
+      span: ({
         children,
-        whileHover,
-        whileTap,
         initial,
         animate,
-        variants,
+        exit,
         transition,
         ...props
-      }: React.HTMLAttributes<HTMLElement> & Record<string, unknown>) => (
-        <article {...props}>{children}</article>
+      }: React.HTMLAttributes<HTMLSpanElement> & Record<string, unknown>) => (
+        <span {...props}>{children}</span>
       ),
     },
     AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -91,43 +89,48 @@ vi.mock("next/image", () => ({
   ),
 }))
 
+const ADJECTIVES = ["EFFICIENT", "EFFORTLESS", "ELEVATED"]
+
 function renderHomePage() {
   render(<HomePage destinations={destinations} />)
 }
 
 describe("HomePage", () => {
-  it("renders the hero heading", () => {
+  it("renders the hero heading with a rotating adjective", () => {
     renderHomePage()
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Fly like you mean it.")
+    const h1 = screen.getByRole("heading", { level: 1 })
+    expect(ADJECTIVES.some((word) => h1.textContent?.includes(word))).toBe(true)
   })
 
-  it("renders the primary CTA button", () => {
+  it("renders the search flights link", () => {
     renderHomePage()
-    expect(screen.getByRole("button", { name: "Search Flights" })).toBeInTheDocument()
+    expect(
+      screen.getByRole("link", { name: /search flights/i })
+    ).toBeInTheDocument()
   })
 
-  it("renders the navigation", () => {
+  it("renders the JSX logo link", () => {
     renderHomePage()
-    expect(screen.getByRole("navigation", { name: "Main navigation" })).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: /JSX home/i })).toBeInTheDocument()
   })
 
-  it("renders the Book a Flight nav button", () => {
+  it("renders the sign in link", () => {
     renderHomePage()
-    expect(screen.getByRole("button", { name: "Book a Flight" })).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: /sign in/i })).toBeInTheDocument()
   })
 
-  it("renders feature highlights", () => {
+  it("renders the hamburger menu button", () => {
     renderHomePage()
-    expect(screen.getByText("30-seat jets")).toBeInTheDocument()
-    expect(screen.getByText("No hidden fees")).toBeInTheDocument()
-    expect(screen.getByText("Terminal-to-terminal")).toBeInTheDocument()
+    expect(
+      screen.getByRole("button", { name: /open navigation menu/i })
+    ).toBeInTheDocument()
   })
 
   describe("Hero image", () => {
     it("renders the hero image with priority to prevent LCP delay", () => {
       renderHomePage()
       const heroImg = screen.getByAltText(
-        "JSX semi-private aircraft on the tarmac at sunset, ready for departure"
+        "JSX semi-private jet on the tarmac at golden hour"
       )
       expect(heroImg).toBeInTheDocument()
       expect(heroImg).toHaveAttribute("data-priority", "true")
@@ -136,29 +139,82 @@ describe("HomePage", () => {
     it("renders the hero image using fill layout for full-viewport coverage", () => {
       renderHomePage()
       const heroImg = screen.getByAltText(
-        "JSX semi-private aircraft on the tarmac at sunset, ready for departure"
+        "JSX semi-private jet on the tarmac at golden hour"
       )
       expect(heroImg).toHaveAttribute("data-fill", "true")
     })
   })
 
-  describe("Destination grid", () => {
-    it("renders the destinations section heading", () => {
+  describe("JSX Experience section", () => {
+    it("renders the section heading", () => {
       renderHomePage()
       expect(
-        screen.getByRole("heading", { name: "Where will you fly next?" })
+        screen.getByRole("heading", { name: "The JSX Experience" })
       ).toBeInTheDocument()
     })
 
-    it("renders all destination cards from static data", () => {
+    it("renders the experience card list", () => {
       renderHomePage()
-      const articles = screen.getAllByRole("article")
-      expect(articles).toHaveLength(destinations.length)
+      expect(
+        screen.getByRole("list", { name: "JSX experience highlights" })
+      ).toBeInTheDocument()
+    })
+  })
+
+  describe("Where We Fly section", () => {
+    it("renders the section heading", () => {
+      renderHomePage()
+      expect(screen.getByRole("heading", { name: "Where We Fly" })).toBeInTheDocument()
     })
 
-    it("renders the Dallas destination card", () => {
+    it("renders exactly 4 destination links", () => {
       renderHomePage()
-      expect(screen.getByRole("article", { name: "Dallas, TX" })).toBeInTheDocument()
+      const destList = screen.getByRole("list", { name: "Flight destinations" })
+      const destLinks = Array.from(destList.querySelectorAll("[aria-label*='Flights to']"))
+      expect(destLinks.length).toBe(4)
+    })
+
+    it("renders the See All Routes link", () => {
+      renderHomePage()
+      expect(screen.getByRole("link", { name: /see all routes/i })).toBeInTheDocument()
+    })
+  })
+
+  describe("Join Club JSX section", () => {
+    it("renders the section heading", () => {
+      renderHomePage()
+      expect(screen.getByRole("heading", { name: "Join Club JSX" })).toBeInTheDocument()
+    })
+
+    it("renders the Become a Member link", () => {
+      renderHomePage()
+      expect(
+        screen.getByRole("link", { name: /become a member for free/i })
+      ).toBeInTheDocument()
+    })
+
+    it("renders all four Club JSX stats", () => {
+      renderHomePage()
+      expect(screen.getByText("5%")).toBeInTheDocument()
+      expect(screen.getByText("2X")).toBeInTheDocument()
+      expect(screen.getByText("$100")).toBeInTheDocument()
+    })
+  })
+
+  describe("Footer", () => {
+    it("renders the site footer landmark", () => {
+      renderHomePage()
+      expect(screen.getByRole("contentinfo")).toBeInTheDocument()
+    })
+
+    it("renders Fly JSX footer section", () => {
+      renderHomePage()
+      expect(screen.getByRole("heading", { name: "Fly JSX" })).toBeInTheDocument()
+    })
+
+    it("renders Legal footer section", () => {
+      renderHomePage()
+      expect(screen.getByRole("heading", { name: "Legal" })).toBeInTheDocument()
     })
   })
 
@@ -172,7 +228,6 @@ describe("HomePage", () => {
       const result = await getServerSideProps({} as Parameters<typeof getServerSideProps>[0])
       expect("props" in result).toBe(true)
       if ("props" in result) {
-        // Next.js types props as P | Promise<P>; our impl always returns a plain object
         const props = result.props as Awaited<typeof result.props>
         expect(props.destinations).toEqual(destinations)
         expect(props.destinations.length).toBeGreaterThan(0)
