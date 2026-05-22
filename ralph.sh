@@ -121,9 +121,10 @@ run_issue() {
   gh issue comment "$issue_number" --repo "$REPO" \
     --body "Ralph is starting work on this issue." >/dev/null
 
-  # Create a feature branch (delete local copy first if it already exists).
+  # Create a feature branch (prune worktrees and delete local copy first if it already exists).
   local branch="ralph/issue-${issue_number}-$(slugify "$title")"
   git fetch origin main --quiet
+  git worktree prune 2>/dev/null || true
   git branch -D "$branch" 2>/dev/null || true
   git checkout -b "$branch" origin/main
 
