@@ -156,6 +156,33 @@ PROJECT CONTEXT (PRD)
 ${prd_context}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FIGMA DESIGN SYSTEM — MANDATORY FOR ALL UI WORK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+The official JSX UI designs live in Figma. For ANY issue that involves
+building or modifying a UI component, page, or visual element, you MUST:
+
+1. Use the Figma MCP tool \`mcp__plugin_figma_figma__get_screenshot\` or
+   \`mcp__plugin_figma_figma__get_design_context\` to fetch the relevant
+   design before writing any JSX/TSX.
+
+2. Figma file key: 8TPHDvgnAX08HgIZlja3jK
+   Full URL: https://www.figma.com/design/8TPHDvgnAX08HgIZlja3jK/JSX-UI-Design
+
+3. Start by calling \`mcp__plugin_figma_figma__get_metadata\` with just the
+   fileKey to list all pages, then drill into the relevant node.
+
+4. Match colours, spacing, typography, border-radius, and component
+   structure exactly to the Figma spec. Use Tailwind utility classes —
+   do not hardcode hex values; map them to the design tokens in
+   tailwind.config.ts.
+
+5. If a specific node ID is not known, use get_metadata to browse the
+   file tree and identify the correct frame before implementing.
+
+6. For non-UI issues (BFF endpoints, store logic, tests, config) the
+   Figma MCP is not required — skip it and focus on the logic.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ARCHITECTURE DECISIONS (locked in)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 - Framework:      Next.js 14 Pages Router (TypeScript)
