@@ -1,5 +1,12 @@
 import Image from "next/image"
+import { motion, useReducedMotion } from "framer-motion"
 import type { Destination } from "@/data/destinations"
+
+const cardVariants = {
+  rest: {},
+  hover: { y: -4 },
+  tap: { scale: 0.98 },
+}
 
 interface DestinationCardProps {
   destination: Destination
@@ -9,10 +16,17 @@ interface DestinationCardProps {
 }
 
 export function DestinationCard({ destination, priority = false }: DestinationCardProps) {
+  const shouldReduceMotion = useReducedMotion()
+
   return (
-    <article
+    <motion.article
       className="group relative overflow-hidden rounded-lg bg-jsx-black"
       aria-label={`${destination.city}, ${destination.state}`}
+      variants={cardVariants}
+      initial="rest"
+      whileHover={shouldReduceMotion ? undefined : "hover"}
+      whileTap={shouldReduceMotion ? undefined : "tap"}
+      transition={{ duration: 0.2, ease: "easeOut" }}
     >
       <Image
         src={destination.imageUrl}
@@ -37,6 +51,6 @@ export function DestinationCard({ destination, priority = false }: DestinationCa
         </h3>
         <p className="mt-0.5 text-sm text-gray-300">{destination.tagline}</p>
       </div>
-    </article>
+    </motion.article>
   )
 }
