@@ -10,6 +10,7 @@ import type { Destination } from "@/data/destinations"
 const capturedProps = {
   articles: [] as any[],
   divs: [] as any[],
+  spans: [] as any[],
 }
 
 vi.mock("framer-motion", async () => {
@@ -51,6 +52,17 @@ vi.mock("framer-motion", async () => {
       }: any) => {
         capturedProps.articles.push({ whileHover, whileTap, initial, animate, variants, transition })
         return <article {...rest}>{children}</article>
+      },
+      span: ({
+        children,
+        initial,
+        animate,
+        exit,
+        transition,
+        ...rest
+      }: any) => {
+        capturedProps.spans.push({ initial, animate, exit, transition })
+        return <span {...rest}>{children}</span>
       },
     },
     AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -122,6 +134,7 @@ describe("DestinationCard micro-interactions", () => {
   beforeEach(() => {
     capturedProps.articles = []
     capturedProps.divs = []
+    capturedProps.spans = []
     vi.mocked(useReducedMotion).mockReturnValue(false)
   })
 
@@ -163,57 +176,43 @@ describe("DestinationCard micro-interactions", () => {
   })
 })
 
-describe("Hero entrance animation", () => {
+const ADJECTIVES = ["EFFICIENT", "EFFORTLESS", "ELEVATED"]
+
+describe("Hero rotating adjective animation", () => {
   beforeEach(() => {
     capturedProps.articles = []
     capturedProps.divs = []
+    capturedProps.spans = []
     vi.mocked(useReducedMotion).mockReturnValue(false)
     vi.mocked(useInView).mockReturnValue(true)
   })
 
-  it("renders hero content when the element enters the viewport", () => {
+  it("renders h1 with one of the rotating adjectives", () => {
     render(<HomePage destinations={destinations} />)
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Fly like you mean it.")
+    const h1 = screen.getByRole("heading", { level: 1 })
+    expect(ADJECTIVES.some((word) => h1.textContent?.includes(word))).toBe(true)
   })
 
-  it("sets an initial hidden state (opacity 0, y 20) when reduced motion is off", () => {
+  it("sets initial {opacity:0, y:20} on the adjective span when reduced motion is off", () => {
     render(<HomePage destinations={destinations} />)
-    const heroDivProps = capturedProps.divs.find(
+    const animated = capturedProps.spans.find(
       (p) => p.initial !== undefined && p.initial !== false && p.initial?.opacity === 0
     )
-    expect(heroDivProps).toBeDefined()
-    expect(heroDivProps.initial).toEqual({ opacity: 0, y: 20 })
+    expect(animated).toBeDefined()
+    expect(animated.initial).toEqual({ opacity: 0, y: 20 })
   })
 
-  it("skips the initial hidden state (initial=false) when reduced motion is on", () => {
+  it("sets initial=false on the adjective span when reduced motion is on", () => {
     vi.mocked(useReducedMotion).mockReturnValue(true)
     render(<HomePage destinations={destinations} />)
-    const heroSkipsInitial = capturedProps.divs.find((p) => p.initial === false)
-    expect(heroSkipsInitial).toBeDefined()
+    const noAnimation = capturedProps.spans.find((p) => p.initial === false)
+    expect(noAnimation).toBeDefined()
   })
 
-  it("renders hero heading immediately when reduced motion is on and element is not yet in view", () => {
-    vi.mocked(useReducedMotion).mockReturnValue(true)
-    vi.mocked(useInView).mockReturnValue(false)
-    render(<HomePage destinations={destinations} />)
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Fly like you mean it.")
-  })
-
-  it("applies scale micro-interactions to CTA buttons when reduced motion is off", () => {
-    render(<HomePage destinations={destinations} />)
-    const buttonWrappers = capturedProps.divs.filter(
-      (p) =>
-        p.whileHover !== undefined &&
-        typeof p.whileHover === "object" &&
-        "scale" in p.whileHover
-    )
-    expect(buttonWrappers.length).toBeGreaterThanOrEqual(2)
-  })
-
-  it("removes button micro-interactions when reduced motion is on", () => {
+  it("still renders the hero heading when reduced motion is on", () => {
     vi.mocked(useReducedMotion).mockReturnValue(true)
     render(<HomePage destinations={destinations} />)
-    const animatedButtons = capturedProps.divs.filter((p) => p.whileHover !== undefined)
-    expect(animatedButtons).toHaveLength(0)
+    const h1 = screen.getByRole("heading", { level: 1 })
+    expect(ADJECTIVES.some((word) => h1.textContent?.includes(word))).toBe(true)
   })
 })
