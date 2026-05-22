@@ -5,6 +5,7 @@ import { useRouter } from "next/router"
 import { useEffect } from "react"
 import "@/styles/globals.css"
 import { pageview, GA_MEASUREMENT_ID } from "@/lib/analytics"
+import { Toaster } from "@/components/ui/toaster"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -50,6 +51,7 @@ export default function App({ Component, pageProps }: AppProps) {
       <main className={`${inter.variable} font-sans`}>
         <Component {...pageProps} />
       </main>
+      <Toaster />
     </>
   )
 }
