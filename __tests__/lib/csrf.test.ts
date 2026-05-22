@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest"
+import { describe, it, expect, afterEach, vi } from "vitest"
 import {
   requiresCsrfCheck,
   isValidOrigin,
@@ -70,24 +70,24 @@ describe("getAllowedOrigins", () => {
   })
 
   it("includes NEXT_PUBLIC_APP_URL when set", () => {
-    vi.stubEnv(\"NEXT_PUBLIC_APP_URL\", \1)
+    vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://jsx.com")
     vi.stubEnv("NODE_ENV", "production")
-    delete process.env.VERCEL_URL
+    vi.stubEnv("VERCEL_URL", "")
     const origins = getAllowedOrigins()
     expect(origins).toContain("https://jsx.com")
   })
 
   it("strips trailing slash from NEXT_PUBLIC_APP_URL", () => {
-    vi.stubEnv(\"NEXT_PUBLIC_APP_URL\", \1)
+    vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://jsx.com/")
     vi.stubEnv("NODE_ENV", "production")
-    delete process.env.VERCEL_URL
+    vi.stubEnv("VERCEL_URL", "")
     const origins = getAllowedOrigins()
     expect(origins).toContain("https://jsx.com")
     expect(origins).not.toContain("https://jsx.com/")
   })
 
   it("includes https://VERCEL_URL when set", () => {
-    process.env.VERCEL_URL = "jsx-preview.vercel.app"
+    vi.stubEnv("VERCEL_URL", "jsx-preview.vercel.app")
     vi.stubEnv("NODE_ENV", "production")
     const origins = getAllowedOrigins()
     expect(origins).toContain("https://jsx-preview.vercel.app")
@@ -102,8 +102,8 @@ describe("getAllowedOrigins", () => {
 
   it("excludes localhost in production", () => {
     vi.stubEnv("NODE_ENV", "production")
-    delete process.env.VERCEL_URL
-    delete process.env.NEXT_PUBLIC_APP_URL
+    vi.stubEnv("VERCEL_URL", "")
+    vi.stubEnv("NEXT_PUBLIC_APP_URL", "")
     const origins = getAllowedOrigins()
     expect(origins).not.toContain("http://localhost:3000")
   })
