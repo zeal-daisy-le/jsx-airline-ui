@@ -78,10 +78,10 @@ find_next_issue() {
     --jq 'sort_by(.number) | .[].number')
 
   for number in $issues; do
-    # Skip issues already claimed by another Ralph instance.
+    # Skip issues already claimed or completed by Ralph.
     local labels
     labels=$(gh issue view "$number" --repo "$REPO" --json labels --jq '[.labels[].name] | join(",")' 2>/dev/null || echo "")
-    if echo "$labels" | grep -q "in-progress"; then
+    if echo "$labels" | grep -qE "in-progress|ralph-done"; then
       continue
     fi
 
@@ -121,9 +121,10 @@ run_issue() {
   gh issue comment "$issue_number" --repo "$REPO" \
     --body "Ralph is starting work on this issue." >/dev/null
 
-  # Create a feature branch.
+  # Create a feature branch (delete local copy first if it already exists).
   local branch="ralph/issue-${issue_number}-$(slugify "$title")"
   git fetch origin main --quiet
+  git branch -D "$branch" 2>/dev/null || true
   git checkout -b "$branch" origin/main
 
   # Build the agent prompt.
