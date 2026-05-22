@@ -37,7 +37,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: lint-typecheck
     env:
-      NEXT_PUBLIC_APP_URL: ${{ vars.NEXT_PUBLIC_APP_URL || "http://localhost:3000" }}
+      NEXT_PUBLIC_APP_URL: ${{ vars.NEXT_PUBLIC_APP_URL || 'http://localhost:3000' }}
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+      SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
     steps:
       - uses: actions/checkout@v4
 
@@ -78,3 +81,22 @@ jobs:
 
       - name: Run tests
         run: npm test
+
+  sentry-release:
+    name: Sentry Release
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create Sentry release
+        uses: getsentry/sentry-release-action@v1
+        with:
+          release: ${{ github.sha }}
+          environment: production
+          sentry_auth_token: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          sentry_org: ${{ secrets.SENTRY_ORG }}
+          sentry_project: ${{ secrets.SENTRY_PROJECT }}
