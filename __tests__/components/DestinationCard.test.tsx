@@ -3,6 +3,24 @@ import { describe, it, expect, vi } from "vitest"
 import { DestinationCard } from "@/components/destinations/DestinationCard"
 import type { Destination } from "@/data/destinations"
 
+vi.mock("framer-motion", () => ({
+  motion: {
+    article: ({
+      children,
+      whileHover,
+      whileTap,
+      initial,
+      animate,
+      variants,
+      transition,
+      ...props
+    }: React.HTMLAttributes<HTMLElement> & Record<string, unknown>) => (
+      <article {...props}>{children}</article>
+    ),
+  },
+  useReducedMotion: vi.fn(() => false),
+}))
+
 vi.mock("next/image", () => ({
   default: ({
     src,

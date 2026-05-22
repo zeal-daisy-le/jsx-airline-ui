@@ -1,7 +1,9 @@
+import { useRef } from "react"
 import type { GetServerSideProps } from "next"
 import Head from "next/head"
 import Image from "next/image"
 import Link from "next/link"
+import { motion, useInView, useReducedMotion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { DestinationGrid } from "@/components/destinations/DestinationGrid"
 import { destinations as allDestinations, type Destination } from "@/data/destinations"
@@ -11,6 +13,10 @@ interface HomePageProps {
 }
 
 export default function HomePage({ destinations }: HomePageProps) {
+  const heroRef = useRef<HTMLDivElement>(null)
+  const isInView = useInView(heroRef, { once: true, amount: 0.1 })
+  const shouldReduceMotion = useReducedMotion()
+
   return (
     <>
       <Head>
@@ -77,7 +83,13 @@ export default function HomePage({ destinations }: HomePageProps) {
             sizes="100vw"
             className="object-cover opacity-40"
           />
-          <div className="relative z-10 mx-auto max-w-4xl">
+          <motion.div
+            ref={heroRef}
+            className="relative z-10 mx-auto max-w-4xl"
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
+            animate={shouldReduceMotion || isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+            transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+          >
             <p className="mb-4 text-sm font-semibold uppercase tracking-widest text-jsx-red">
               Semi-private aviation
             </p>
@@ -92,18 +104,32 @@ export default function HomePage({ destinations }: HomePageProps) {
               actually enjoy the journey.
             </p>
             <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
-              <Button variant="jsx" size="xl">
-                Search Flights
-              </Button>
-              <Button
-                variant="outline"
-                size="xl"
-                className="border-white/30 text-white hover:bg-white/10 hover:text-white"
+              <motion.div
+                className="inline-flex"
+                whileHover={shouldReduceMotion ? undefined : { scale: 1.03 }}
+                whileTap={shouldReduceMotion ? undefined : { scale: 0.97 }}
+                transition={{ duration: 0.15, ease: "easeOut" }}
               >
-                Our Destinations
-              </Button>
+                <Button variant="jsx" size="xl">
+                  Search Flights
+                </Button>
+              </motion.div>
+              <motion.div
+                className="inline-flex"
+                whileHover={shouldReduceMotion ? undefined : { scale: 1.03 }}
+                whileTap={shouldReduceMotion ? undefined : { scale: 0.97 }}
+                transition={{ duration: 0.15, ease: "easeOut" }}
+              >
+                <Button
+                  variant="outline"
+                  size="xl"
+                  className="border-white/30 text-white hover:bg-white/10 hover:text-white"
+                >
+                  Our Destinations
+                </Button>
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
         </section>
 
         {/* Feature highlights */}

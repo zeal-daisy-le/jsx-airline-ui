@@ -3,6 +3,49 @@ import { describe, it, expect, vi } from "vitest"
 import HomePage, { getServerSideProps } from "@/pages/index"
 import { destinations } from "@/data/destinations"
 
+vi.mock("framer-motion", async () => {
+  const { forwardRef } = await import("react")
+  return {
+    motion: {
+      div: forwardRef(
+        (
+          {
+            children,
+            whileHover,
+            whileTap,
+            initial,
+            animate,
+            exit,
+            variants,
+            transition,
+            ...props
+          }: React.HTMLAttributes<HTMLDivElement> & Record<string, unknown>,
+          ref: React.Ref<HTMLDivElement>
+        ) => (
+          <div ref={ref} {...props}>
+            {children}
+          </div>
+        )
+      ),
+      article: ({
+        children,
+        whileHover,
+        whileTap,
+        initial,
+        animate,
+        variants,
+        transition,
+        ...props
+      }: React.HTMLAttributes<HTMLElement> & Record<string, unknown>) => (
+        <article {...props}>{children}</article>
+      ),
+    },
+    AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    useReducedMotion: vi.fn(() => false),
+    useInView: vi.fn(() => true),
+  }
+})
+
 vi.mock("next/head", () => ({
   default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }))
