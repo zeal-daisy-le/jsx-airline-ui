@@ -1,8 +1,16 @@
+import type { GetServerSideProps } from "next"
 import Head from "next/head"
+import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { DestinationGrid } from "@/components/destinations/DestinationGrid"
+import { destinations as allDestinations, type Destination } from "@/data/destinations"
 
-export default function HomePage() {
+interface HomePageProps {
+  destinations: Destination[]
+}
+
+export default function HomePage({ destinations }: HomePageProps) {
   return (
     <>
       <Head>
@@ -37,7 +45,7 @@ export default function HomePage() {
             <nav aria-label="Main navigation">
               <ul className="flex items-center gap-6 text-sm font-medium text-gray-600">
                 <li>
-                  <a href="#" className="transition-colors hover:text-jsx-red">
+                  <a href="#destinations" className="transition-colors hover:text-jsx-red">
                     Destinations
                   </a>
                 </li>
@@ -56,11 +64,20 @@ export default function HomePage() {
           </div>
         </header>
 
+        {/* Hero — priority image above the fold, prevents LCP delay */}
         <section
-          className="relative flex min-h-[80vh] flex-col items-center justify-center bg-jsx-black px-6 text-center text-white"
+          className="relative flex min-h-[80vh] flex-col items-center justify-center bg-jsx-black px-6 text-center text-white overflow-hidden"
           aria-labelledby="hero-heading"
         >
-          <div className="mx-auto max-w-4xl">
+          <Image
+            src="/images/hero.jpg"
+            alt="JSX semi-private aircraft on the tarmac at sunset, ready for departure"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover opacity-40"
+          />
+          <div className="relative z-10 mx-auto max-w-4xl">
             <p className="mb-4 text-sm font-semibold uppercase tracking-widest text-jsx-red">
               Semi-private aviation
             </p>
@@ -70,7 +87,7 @@ export default function HomePage() {
             >
               Fly like you mean it.
             </h1>
-            <p className="mb-10 max-w-xl mx-auto text-lg text-gray-300">
+            <p className="mb-10 mx-auto max-w-xl text-lg text-gray-300">
               No crowds, no chaos. Just 30 seats, terminal-to-terminal service, and the freedom to
               actually enjoy the journey.
             </p>
@@ -89,6 +106,7 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* Feature highlights */}
         <section className="border-b border-gray-100 bg-gray-50 py-16" aria-label="Key features">
           <div className="container">
             <ul className="grid gap-8 sm:grid-cols-3" role="list">
@@ -115,10 +133,23 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* Destination photography grid — below the fold, images lazy-loaded by default */}
+        <div id="destinations">
+          <DestinationGrid destinations={destinations} />
+        </div>
+
         <footer className="py-10 text-center text-sm text-gray-400">
           <p>© {new Date().getFullYear()} JSX. All rights reserved.</p>
         </footer>
       </div>
     </>
   )
+}
+
+export const getServerSideProps: GetServerSideProps<HomePageProps> = async () => {
+  return {
+    props: {
+      destinations: allDestinations,
+    },
+  }
 }
