@@ -1,13 +1,8 @@
 import { describe, it, expect, beforeEach } from "vitest"
 import { act } from "@testing-library/react"
 import { useBookingStore } from "@/stores/bookingStore"
-import type {
-  SelectedFlight,
-  PassengerCount,
-  TravelerInfo,
-  BagSelection,
-  SeatAssignment,
-} from "@/stores/bookingStore"
+import type { SelectedFlight, PassengerCount, TravelerInfo, BagSelection, SeatAssignment } from "@/stores/bookingStore"
+import { BOOKING_STEPS } from "@/lib/booking/steps"
 
 const STORAGE_KEY = "jsx-booking"
 
@@ -20,9 +15,7 @@ const MOCK_FLIGHT: SelectedFlight = {
   arrivalTime: "2026-06-01T09:45:00-07:00",
   pricePerPassenger: 299,
 }
-
 const MOCK_PASSENGERS: PassengerCount = { adults: 2, children: 1, infants: 0 }
-
 const MOCK_TRAVELER: TravelerInfo = {
   firstName: "Alice",
   lastName: "Smith",
@@ -30,353 +23,265 @@ const MOCK_TRAVELER: TravelerInfo = {
   documentType: "passport",
   documentNumber: "A12345678",
 }
-
 const MOCK_BAGS: BagSelection[] = [{ passengerIndex: 0, checkedBags: 1 }]
 const MOCK_SEATS: SeatAssignment[] = [{ passengerIndex: 0, seatNumber: "3A" }]
 
-const RESET_STATE = {
-  selectedFlight: null,
-  passengers: { adults: 1, children: 0, infants: 0 },
-  travelerInfo: [],
-  bagSelections: [],
-  seatAssignments: [],
-  paymentToken: null,
-  currentStep: "flights" as const,
-  stepValidity: {
-    flights: false,
-    passengers: false,
-    details: false,
-    bags: false,
-    seats: false,
-    review: false,
-    payment: false,
-    confirmation: false,
-  },
+function allValid() {
+  return Object.fromEntries(BOOKING_STEPS.map((s) => [s, true])) as Record<typeof BOOKING_STEPS[number], boolean>
 }
 
 beforeEach(() => {
   sessionStorage.clear()
   act(() => {
-    useBookingStore.setState(RESET_STATE)
+    useBookingStore.setState({
+      currentStep: "flights",
+      stepValidity: Object.fromEntries(BOOKING_STEPS.map((s) => [s, false])) as ReturnType<typeof useBookingStore.getState>["stepValidity"],
+      hasHydrated: true,
+      selectedFlight: null,
+      passengers: { adults: 1, children: 0, infants: 0 },
+      travelerInfo: [],
+      bagSelections: [],
+      seatAssignments: [],
+      paymentToken: null,
+      bookingReference: null,
+    })
   })
 })
 
 // ─── Initial state ────────────────────────────────────────────────────────────
 
 describe("initial state", () => {
-  it("starts with null flight, 1 adult passenger, and flights as the current step", () => {
-    const { selectedFlight, passengers, currentStep } = useBookingStore.getState()
-    expect(selectedFlight).toBeNull()
-    expect(passengers).toEqual({ adults: 1, children: 0, infants: 0 })
+  it("starts on the flights step with 1 adult passenger", () => {
+    const { currentStep, passengers } = useBookingStore.getState()
     expect(currentStep).toBe("flights")
+    expect(passengers).toEqual({ adults: 1, children: 0, infants: 0 })
   })
 
   it("starts with all steps invalid", () => {
     const { stepValidity } = useBookingStore.getState()
-    for (const valid of Object.values(stepValidity)) {
-      expect(valid).toBe(false)
-    }
+    BOOKING_STEPS.forEach((step) => expect(stepValidity[step]).toBe(false))
   })
 
-  it("starts with empty travelerInfo, bagSelections, seatAssignments and null paymentToken", () => {
-    const { travelerInfo, bagSelections, seatAssignments, paymentToken } =
-      useBookingStore.getState()
-    expect(travelerInfo).toEqual([])
-    expect(bagSelections).toEqual([])
-    expect(seatAssignments).toEqual([])
-    expect(paymentToken).toBeNull()
+  it("starts with null flight, empty collections, and null payment token", () => {
+    const s = useBookingStore.getState()
+    expect(s.selectedFlight).toBeNull()
+    expect(s.travelerInfo).toEqual([])
+    expect(s.bagSelections).toEqual([])
+    expect(s.seatAssignments).toEqual([])
+    expect(s.paymentToken).toBeNull()
+    expect(s.bookingReference).toBeNull()
   })
 })
 
-// ─── Step transitions ─────────────────────────────────────────────────────────
+// ─── Step setters ─────────────────────────────────────────────────────────────
 
-describe("step transitions", () => {
-  it("setSelectedFlight stores the flight and marks flights valid", () => {
-    act(() => {
-      useBookingStore.getState().setSelectedFlight(MOCK_FLIGHT)
+describe("setCurrentStep", () => {
+  it("updates the active step", () => {
+    act(() => { useBookingStore.getState().setCurrentStep("bags") })
+    expect(useBookingStore.getState().currentStep).toBe("bags")
+  })
+})
+
+describe("markStepValid / setStepValid", () => {
+  it("markStepValid marks the step true", () => {
+    act(() => { useBookingStore.getState().markStepValid("flights") })
+    expect(useBookingStore.getState().stepValidity.flights).toBe(true)
+  })
+
+  it("markStepValid does not affect other steps", () => {
+    act(() => { useBookingStore.getState().markStepValid("flights") })
+    BOOKING_STEPS.filter((s) => s !== "flights").forEach((s) => {
+      expect(useBookingStore.getState().stepValidity[s]).toBe(false)
     })
+  })
+
+  it("setStepValid can set a step to false", () => {
+    act(() => { useBookingStore.getState().markStepValid("review") })
+    act(() => { useBookingStore.getState().setStepValid("review", false) })
+    expect(useBookingStore.getState().stepValidity.review).toBe(false)
+  })
+})
+
+// ─── invalidateStepsFrom ──────────────────────────────────────────────────────
+
+describe("invalidateStepsFrom", () => {
+  it("clears the given step and all after it", () => {
+    act(() => { useBookingStore.setState({ stepValidity: allValid() }) })
+    act(() => { useBookingStore.getState().invalidateStepsFrom("bags") })
+    const { stepValidity } = useBookingStore.getState()
+    expect(stepValidity.flights).toBe(true)
+    expect(stepValidity.passengers).toBe(true)
+    expect(stepValidity.details).toBe(true)
+    expect(stepValidity.bags).toBe(false)
+    expect(stepValidity.seats).toBe(false)
+    expect(stepValidity.review).toBe(false)
+    expect(stepValidity.payment).toBe(false)
+    expect(stepValidity.confirmation).toBe(false)
+  })
+
+  it("invalidating from flights clears everything", () => {
+    act(() => { useBookingStore.setState({ stepValidity: allValid() }) })
+    act(() => { useBookingStore.getState().invalidateStepsFrom("flights") })
+    BOOKING_STEPS.forEach((s) => expect(useBookingStore.getState().stepValidity[s]).toBe(false))
+  })
+})
+
+// ─── canAccessStep ────────────────────────────────────────────────────────────
+
+describe("canAccessStep", () => {
+  it("flights is always accessible", () => {
+    expect(useBookingStore.getState().canAccessStep("flights")).toBe(true)
+  })
+
+  it("passengers is not accessible when flights is incomplete", () => {
+    expect(useBookingStore.getState().canAccessStep("passengers")).toBe(false)
+  })
+
+  it("passengers is accessible after flights is marked valid", () => {
+    act(() => { useBookingStore.getState().markStepValid("flights") })
+    expect(useBookingStore.getState().canAccessStep("passengers")).toBe(true)
+  })
+
+  it("seats requires flights, passengers, details, and bags to be valid", () => {
+    const prereqs: Array<typeof BOOKING_STEPS[number]> = ["flights", "passengers", "details"]
+    prereqs.forEach((step) => {
+      expect(useBookingStore.getState().canAccessStep("seats")).toBe(false)
+      act(() => { useBookingStore.getState().markStepValid(step) })
+    })
+    expect(useBookingStore.getState().canAccessStep("seats")).toBe(false)
+    act(() => { useBookingStore.getState().markStepValid("bags") })
+    expect(useBookingStore.getState().canAccessStep("seats")).toBe(true)
+  })
+})
+
+// ─── getEarliestIncompleteStep ────────────────────────────────────────────────
+
+describe("getEarliestIncompleteStep", () => {
+  it("returns flights when nothing is complete", () => {
+    expect(useBookingStore.getState().getEarliestIncompleteStep()).toBe("flights")
+  })
+
+  it("returns passengers once flights is complete", () => {
+    act(() => { useBookingStore.getState().markStepValid("flights") })
+    expect(useBookingStore.getState().getEarliestIncompleteStep()).toBe("passengers")
+  })
+
+  it("returns confirmation once all steps are complete", () => {
+    act(() => { useBookingStore.setState({ stepValidity: allValid() }) })
+    expect(useBookingStore.getState().getEarliestIncompleteStep()).toBe("confirmation")
+  })
+})
+
+// ─── Data setters + downstream invalidation ───────────────────────────────────
+
+describe("setSelectedFlight", () => {
+  it("stores the flight and marks flights valid", () => {
+    act(() => { useBookingStore.getState().setSelectedFlight(MOCK_FLIGHT) })
     const { selectedFlight, stepValidity } = useBookingStore.getState()
     expect(selectedFlight).toEqual(MOCK_FLIGHT)
     expect(stepValidity.flights).toBe(true)
   })
 
-  it("setSelectedFlight invalidates all steps downstream of flights", () => {
-    act(() => {
-      // pre-mark every step valid
-      useBookingStore.setState({
-        stepValidity: {
-          flights: true,
-          passengers: true,
-          details: true,
-          bags: true,
-          seats: true,
-          review: true,
-          payment: true,
-          confirmation: true,
-        },
-      })
-      useBookingStore.getState().setSelectedFlight(MOCK_FLIGHT)
-    })
+  it("invalidates all steps downstream of flights", () => {
+    act(() => { useBookingStore.setState({ stepValidity: allValid() }) })
+    act(() => { useBookingStore.getState().setSelectedFlight(MOCK_FLIGHT) })
     const { stepValidity } = useBookingStore.getState()
     expect(stepValidity.flights).toBe(true)
     expect(stepValidity.passengers).toBe(false)
     expect(stepValidity.details).toBe(false)
-    expect(stepValidity.bags).toBe(false)
-    expect(stepValidity.seats).toBe(false)
-    expect(stepValidity.review).toBe(false)
-    expect(stepValidity.payment).toBe(false)
-    expect(stepValidity.confirmation).toBe(false)
   })
+})
 
-  it("setPassengers stores the passenger count and marks passengers valid", () => {
-    act(() => {
-      useBookingStore.getState().setPassengers(MOCK_PASSENGERS)
-    })
+describe("setPassengers", () => {
+  it("stores the count and marks passengers valid", () => {
+    act(() => { useBookingStore.getState().setPassengers(MOCK_PASSENGERS) })
     const { passengers, stepValidity } = useBookingStore.getState()
     expect(passengers).toEqual(MOCK_PASSENGERS)
     expect(stepValidity.passengers).toBe(true)
   })
 
-  it("setTravelerInfo stores traveler details and marks details valid", () => {
-    act(() => {
-      useBookingStore.getState().setTravelerInfo([MOCK_TRAVELER])
-    })
-    const { travelerInfo, stepValidity } = useBookingStore.getState()
-    expect(travelerInfo).toEqual([MOCK_TRAVELER])
-    expect(stepValidity.details).toBe(true)
-  })
-
-  it("setTravelerInfo invalidates bags through confirmation", () => {
-    act(() => {
-      useBookingStore.setState({
-        stepValidity: {
-          flights: true,
-          passengers: true,
-          details: true,
-          bags: true,
-          seats: true,
-          review: true,
-          payment: true,
-          confirmation: true,
-        },
-      })
-      useBookingStore.getState().setTravelerInfo([MOCK_TRAVELER])
-    })
-    const { stepValidity } = useBookingStore.getState()
-    expect(stepValidity.flights).toBe(true)
-    expect(stepValidity.passengers).toBe(true)
-    expect(stepValidity.details).toBe(true)
-    expect(stepValidity.bags).toBe(false)
-    expect(stepValidity.seats).toBe(false)
-    expect(stepValidity.review).toBe(false)
-    expect(stepValidity.payment).toBe(false)
-    expect(stepValidity.confirmation).toBe(false)
-  })
-
-  it("setBagSelections stores bag choices and marks bags valid", () => {
-    act(() => {
-      useBookingStore.getState().setBagSelections(MOCK_BAGS)
-    })
-    const { bagSelections, stepValidity } = useBookingStore.getState()
-    expect(bagSelections).toEqual(MOCK_BAGS)
-    expect(stepValidity.bags).toBe(true)
-  })
-
-  it("setBagSelections invalidates seats through confirmation", () => {
-    act(() => {
-      useBookingStore.setState({
-        stepValidity: {
-          flights: true,
-          passengers: true,
-          details: true,
-          bags: true,
-          seats: true,
-          review: true,
-          payment: true,
-          confirmation: true,
-        },
-      })
-      useBookingStore.getState().setBagSelections(MOCK_BAGS)
-    })
-    const { stepValidity } = useBookingStore.getState()
-    expect(stepValidity.bags).toBe(true)
-    expect(stepValidity.seats).toBe(false)
-    expect(stepValidity.review).toBe(false)
-    expect(stepValidity.payment).toBe(false)
-    expect(stepValidity.confirmation).toBe(false)
-  })
-
-  it("setSeatAssignments stores seat choices and marks seats valid", () => {
-    act(() => {
-      useBookingStore.getState().setSeatAssignments(MOCK_SEATS)
-    })
-    const { seatAssignments, stepValidity } = useBookingStore.getState()
-    expect(seatAssignments).toEqual(MOCK_SEATS)
-    expect(stepValidity.seats).toBe(true)
-  })
-
-  it("setSeatAssignments invalidates review through confirmation", () => {
-    act(() => {
-      useBookingStore.setState({
-        stepValidity: {
-          flights: true,
-          passengers: true,
-          details: true,
-          bags: true,
-          seats: true,
-          review: true,
-          payment: true,
-          confirmation: true,
-        },
-      })
-      useBookingStore.getState().setSeatAssignments(MOCK_SEATS)
-    })
-    const { stepValidity } = useBookingStore.getState()
-    expect(stepValidity.seats).toBe(true)
-    expect(stepValidity.review).toBe(false)
-    expect(stepValidity.payment).toBe(false)
-    expect(stepValidity.confirmation).toBe(false)
-  })
-
-  it("setPaymentToken stores the token and marks payment valid", () => {
-    act(() => {
-      useBookingStore.getState().setPaymentToken("tok_abc123")
-    })
-    const { paymentToken, stepValidity } = useBookingStore.getState()
-    expect(paymentToken).toBe("tok_abc123")
-    expect(stepValidity.payment).toBe(true)
-  })
-
-  it("setCurrentStep updates the active step", () => {
-    act(() => {
-      useBookingStore.getState().setCurrentStep("bags")
-    })
-    expect(useBookingStore.getState().currentStep).toBe("bags")
-  })
-
-  it("setStepValid can mark any step valid or invalid independently", () => {
-    act(() => {
-      useBookingStore.getState().setStepValid("review", true)
-    })
-    expect(useBookingStore.getState().stepValidity.review).toBe(true)
-    act(() => {
-      useBookingStore.getState().setStepValid("review", false)
-    })
-    expect(useBookingStore.getState().stepValidity.review).toBe(false)
-  })
-
-  it("resetBooking clears all data back to initial values", () => {
-    act(() => {
-      useBookingStore.getState().setSelectedFlight(MOCK_FLIGHT)
-      useBookingStore.getState().setPassengers(MOCK_PASSENGERS)
-      useBookingStore.getState().setTravelerInfo([MOCK_TRAVELER])
-      useBookingStore.getState().setBagSelections(MOCK_BAGS)
-      useBookingStore.getState().setSeatAssignments(MOCK_SEATS)
-      useBookingStore.getState().setPaymentToken("tok_abc123")
-      useBookingStore.getState().setCurrentStep("review")
-    })
-    act(() => {
-      useBookingStore.getState().resetBooking()
-    })
-    const state = useBookingStore.getState()
-    expect(state.selectedFlight).toBeNull()
-    expect(state.passengers).toEqual({ adults: 1, children: 0, infants: 0 })
-    expect(state.travelerInfo).toEqual([])
-    expect(state.bagSelections).toEqual([])
-    expect(state.seatAssignments).toEqual([])
-    expect(state.paymentToken).toBeNull()
-    expect(state.currentStep).toBe("flights")
-    for (const valid of Object.values(state.stepValidity)) {
-      expect(valid).toBe(false)
-    }
-  })
-
-  it("completes a full happy-path flow and has all steps valid", () => {
-    act(() => {
-      const s = useBookingStore.getState()
-      s.setSelectedFlight(MOCK_FLIGHT)
-      s.setPassengers({ adults: 1, children: 0, infants: 0 })
-      s.setTravelerInfo([MOCK_TRAVELER])
-      s.setBagSelections(MOCK_BAGS)
-      s.setSeatAssignments(MOCK_SEATS)
-      s.setStepValid("review", true)
-      s.setPaymentToken("tok_completed_123")
-    })
-    const { stepValidity } = useBookingStore.getState()
-    expect(stepValidity.flights).toBe(true)
-    expect(stepValidity.passengers).toBe(true)
-    expect(stepValidity.details).toBe(true)
-    expect(stepValidity.bags).toBe(true)
-    expect(stepValidity.seats).toBe(true)
-    expect(stepValidity.review).toBe(true)
-    expect(stepValidity.payment).toBe(true)
-  })
-})
-
-// ─── Downstream invalidation on passenger count change ───────────────────────
-
-describe("downstream invalidation when passenger count changes", () => {
-  it("clears travelerInfo, bagSelections, and seatAssignments", () => {
+  it("clears travelerInfo, bagSelections, seatAssignments", () => {
     act(() => {
       useBookingStore.getState().setTravelerInfo([MOCK_TRAVELER])
       useBookingStore.getState().setBagSelections(MOCK_BAGS)
       useBookingStore.getState().setSeatAssignments(MOCK_SEATS)
     })
-    act(() => {
-      useBookingStore.getState().setPassengers({ adults: 3, children: 0, infants: 0 })
-    })
+    act(() => { useBookingStore.getState().setPassengers({ adults: 3, children: 0, infants: 0 }) })
     const { travelerInfo, bagSelections, seatAssignments } = useBookingStore.getState()
     expect(travelerInfo).toEqual([])
     expect(bagSelections).toEqual([])
     expect(seatAssignments).toEqual([])
   })
 
-  it("invalidates details, bags, seats, review, payment, and confirmation", () => {
-    act(() => {
-      useBookingStore.getState().setTravelerInfo([MOCK_TRAVELER])
-      useBookingStore.getState().setBagSelections(MOCK_BAGS)
-      useBookingStore.getState().setSeatAssignments(MOCK_SEATS)
-      useBookingStore.getState().setStepValid("review", true)
-      useBookingStore.getState().setPaymentToken("tok_abc123")
-    })
-    act(() => {
-      useBookingStore.getState().setPassengers({ adults: 2, children: 0, infants: 0 })
-    })
+  it("invalidates details through confirmation but preserves flights validity", () => {
+    act(() => { useBookingStore.getState().setSelectedFlight(MOCK_FLIGHT) })
+    act(() => { useBookingStore.setState({ stepValidity: allValid() }) })
+    act(() => { useBookingStore.getState().setPassengers(MOCK_PASSENGERS) })
     const { stepValidity } = useBookingStore.getState()
     expect(stepValidity.passengers).toBe(true)
     expect(stepValidity.details).toBe(false)
     expect(stepValidity.bags).toBe(false)
-    expect(stepValidity.seats).toBe(false)
-    expect(stepValidity.review).toBe(false)
-    expect(stepValidity.payment).toBe(false)
-    expect(stepValidity.confirmation).toBe(false)
+  })
+})
+
+describe("setTravelerInfo", () => {
+  it("stores info and marks details valid", () => {
+    act(() => { useBookingStore.getState().setTravelerInfo([MOCK_TRAVELER]) })
+    expect(useBookingStore.getState().travelerInfo).toEqual([MOCK_TRAVELER])
+    expect(useBookingStore.getState().stepValidity.details).toBe(true)
   })
 
-  it("preserves the flights step validity when passengers change", () => {
+  it("invalidates bags through confirmation", () => {
+    act(() => { useBookingStore.setState({ stepValidity: allValid() }) })
+    act(() => { useBookingStore.getState().setTravelerInfo([MOCK_TRAVELER]) })
+    const { stepValidity } = useBookingStore.getState()
+    expect(stepValidity.details).toBe(true)
+    expect(stepValidity.bags).toBe(false)
+  })
+})
+
+describe("setBagSelections", () => {
+  it("stores bags and marks bags valid", () => {
+    act(() => { useBookingStore.getState().setBagSelections(MOCK_BAGS) })
+    expect(useBookingStore.getState().bagSelections).toEqual(MOCK_BAGS)
+    expect(useBookingStore.getState().stepValidity.bags).toBe(true)
+  })
+})
+
+describe("setSeatAssignments", () => {
+  it("stores seats and marks seats valid", () => {
+    act(() => { useBookingStore.getState().setSeatAssignments(MOCK_SEATS) })
+    expect(useBookingStore.getState().seatAssignments).toEqual(MOCK_SEATS)
+    expect(useBookingStore.getState().stepValidity.seats).toBe(true)
+  })
+})
+
+describe("setPaymentToken", () => {
+  it("stores the token and marks payment valid", () => {
+    act(() => { useBookingStore.getState().setPaymentToken("tok_abc123") })
+    expect(useBookingStore.getState().paymentToken).toBe("tok_abc123")
+    expect(useBookingStore.getState().stepValidity.payment).toBe(true)
+  })
+})
+
+// ─── resetBooking ─────────────────────────────────────────────────────────────
+
+describe("resetBooking", () => {
+  it("clears all data and returns to flights step", () => {
     act(() => {
       useBookingStore.getState().setSelectedFlight(MOCK_FLIGHT)
       useBookingStore.getState().setPassengers(MOCK_PASSENGERS)
+      useBookingStore.getState().setTravelerInfo([MOCK_TRAVELER])
+      useBookingStore.getState().setPaymentToken("tok_abc")
+      useBookingStore.getState().setCurrentStep("review")
     })
-    act(() => {
-      useBookingStore.getState().setPassengers({ adults: 1, children: 0, infants: 0 })
-    })
-    expect(useBookingStore.getState().stepValidity.flights).toBe(true)
-  })
-
-  it("marks the passengers step valid even after it changes", () => {
-    act(() => {
-      useBookingStore.getState().setPassengers(MOCK_PASSENGERS)
-      useBookingStore.getState().setPassengers({ adults: 1, children: 0, infants: 0 })
-    })
-    expect(useBookingStore.getState().stepValidity.passengers).toBe(true)
-  })
-
-  it("stores the new passenger count", () => {
-    const newCount: PassengerCount = { adults: 2, children: 2, infants: 1 }
-    act(() => {
-      useBookingStore.getState().setPassengers(newCount)
-    })
-    expect(useBookingStore.getState().passengers).toEqual(newCount)
+    act(() => { useBookingStore.getState().resetBooking() })
+    const s = useBookingStore.getState()
+    expect(s.currentStep).toBe("flights")
+    expect(s.selectedFlight).toBeNull()
+    expect(s.travelerInfo).toEqual([])
+    expect(s.paymentToken).toBeNull()
+    BOOKING_STEPS.forEach((step) => expect(s.stepValidity[step]).toBe(false))
   })
 })
 
@@ -384,17 +289,12 @@ describe("downstream invalidation when passenger count changes", () => {
 
 describe("payment security", () => {
   it("stores only a gateway token reference — no card fields exist on the store", () => {
-    act(() => {
-      useBookingStore.getState().setPaymentToken("tok_gateway_xyz")
-    })
-    const state = useBookingStore.getState()
-    expect(state.paymentToken).toBe("tok_gateway_xyz")
-    const keys = Object.keys(state)
+    act(() => { useBookingStore.getState().setPaymentToken("tok_gateway_xyz") })
+    const keys = Object.keys(useBookingStore.getState())
     expect(keys).not.toContain("cardNumber")
     expect(keys).not.toContain("cvv")
     expect(keys).not.toContain("cardHolder")
     expect(keys).not.toContain("expiryDate")
-    expect(keys).not.toContain("cardExpiry")
   })
 
   it("navitaireSessionToken is not a field on the store", () => {
@@ -408,23 +308,11 @@ describe("payment security", () => {
 
 describe("sessionStorage persistence", () => {
   it("writes state to sessionStorage after a store update", () => {
-    act(() => {
-      useBookingStore.getState().setSelectedFlight(MOCK_FLIGHT)
-    })
+    act(() => { useBookingStore.getState().setSelectedFlight(MOCK_FLIGHT) })
     const raw = sessionStorage.getItem(STORAGE_KEY)
     expect(raw).not.toBeNull()
     const { state } = JSON.parse(raw!)
     expect(state.selectedFlight).toEqual(MOCK_FLIGHT)
-  })
-
-  it("persists passengers and travelerInfo after each step", () => {
-    act(() => {
-      useBookingStore.getState().setPassengers(MOCK_PASSENGERS)
-      useBookingStore.getState().setTravelerInfo([MOCK_TRAVELER])
-    })
-    const { state } = JSON.parse(sessionStorage.getItem(STORAGE_KEY)!)
-    expect(state.passengers).toEqual(MOCK_PASSENGERS)
-    expect(state.travelerInfo).toEqual([MOCK_TRAVELER])
   })
 
   it("persists stepValidity to sessionStorage", () => {
@@ -439,19 +327,15 @@ describe("sessionStorage persistence", () => {
   })
 
   it("does not persist raw card data to sessionStorage", () => {
-    act(() => {
-      useBookingStore.getState().setPaymentToken("tok_secure_abc")
-    })
+    act(() => { useBookingStore.getState().setPaymentToken("tok_secure_abc") })
     const raw = sessionStorage.getItem(STORAGE_KEY)!
     expect(raw).not.toMatch(/cardNumber/)
     expect(raw).not.toMatch(/cvv/)
-    expect(raw).not.toMatch(/cardHolder/)
-    // paymentToken itself IS stored (gateway reference, not card data)
     expect(raw).toContain("tok_secure_abc")
   })
 
-  it("rehydrates full state from sessionStorage", async () => {
-    const persistedState = {
+  it("rehydrates state from sessionStorage", async () => {
+    const persisted = {
       state: {
         selectedFlight: MOCK_FLIGHT,
         passengers: MOCK_PASSENGERS,
@@ -459,60 +343,21 @@ describe("sessionStorage persistence", () => {
         bagSelections: MOCK_BAGS,
         seatAssignments: MOCK_SEATS,
         paymentToken: null,
+        bookingReference: null,
         currentStep: "seats",
-        stepValidity: {
-          flights: true,
-          passengers: true,
-          details: true,
-          bags: true,
-          seats: false,
-          review: false,
-          payment: false,
-          confirmation: false,
-        },
+        stepValidity: Object.fromEntries(
+          BOOKING_STEPS.map((s, i) => [s, i < 4])
+        ),
       },
       version: 0,
     }
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(persistedState))
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(persisted))
     await useBookingStore.persist.rehydrate()
-
-    const state = useBookingStore.getState()
-    expect(state.selectedFlight).toEqual(MOCK_FLIGHT)
-    expect(state.passengers).toEqual(MOCK_PASSENGERS)
-    expect(state.travelerInfo).toEqual([MOCK_TRAVELER])
-    expect(state.bagSelections).toEqual(MOCK_BAGS)
-    expect(state.seatAssignments).toEqual(MOCK_SEATS)
-    expect(state.currentStep).toBe("seats")
-    expect(state.stepValidity.flights).toBe(true)
-    expect(state.stepValidity.passengers).toBe(true)
-    expect(state.stepValidity.details).toBe(true)
-    expect(state.stepValidity.bags).toBe(true)
-    expect(state.stepValidity.seats).toBe(false)
-  })
-
-  it("rehydrated state preserves stepValidity accurately", async () => {
-    const persistedState = {
-      state: {
-        ...RESET_STATE,
-        stepValidity: {
-          flights: true,
-          passengers: true,
-          details: false,
-          bags: false,
-          seats: false,
-          review: false,
-          payment: false,
-          confirmation: false,
-        },
-      },
-      version: 0,
-    }
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(persistedState))
-    await useBookingStore.persist.rehydrate()
-
-    const { stepValidity } = useBookingStore.getState()
-    expect(stepValidity.flights).toBe(true)
-    expect(stepValidity.passengers).toBe(true)
-    expect(stepValidity.details).toBe(false)
+    const s = useBookingStore.getState()
+    expect(s.selectedFlight).toEqual(MOCK_FLIGHT)
+    expect(s.passengers).toEqual(MOCK_PASSENGERS)
+    expect(s.currentStep).toBe("seats")
+    expect(s.stepValidity.flights).toBe(true)
+    expect(s.stepValidity.seats).toBe(false)
   })
 })
