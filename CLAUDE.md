@@ -38,5 +38,12 @@
 - `bookingEvents.stepViewed(step)` on mount, `bookingEvents.stepCompleted(step, params)` on successful step completion.
 - Both are no-ops when `window.gtag` is absent (server-side or no GA loaded).
 
+#### Booking Store — TravelerInfo + ContactDetails
+- `TravelerInfo` (in `stores/bookingStore.ts`) includes `nationality` alongside name, DOB, document type/number.
+- `contactDetails: ContactDetails | null` is a separate top-level store field (email + phone); set via `setContactDetails`. It is NOT cleared when passenger count changes — only on `resetBooking`.
+- Passport/ID numbers persist to sessionStorage (store) and are sent to the BFF but never server-logged.
+
 ### Completed Issues (ralph/prd-35 branch)
 - **#14**: Flight search step — BFF `/api/search`, search form (RHF+Zod), results, skeletons, GA4 events, error recovery
+- **#15**: Passenger selection step — stepper UI, min-1-adult + infants≤adults constraints, GA4 events
+- **#16**: Traveller details step — multi-passenger RHF+Zod form, per-field blur validation, auth pre-fill, BFF `POST /api/booking/details`, GA4 events, error recovery
