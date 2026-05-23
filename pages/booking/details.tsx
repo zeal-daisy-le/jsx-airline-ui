@@ -249,6 +249,7 @@ const BookingDetailsPage: NextPage = () => {
         {passengerList.map((pax, index) => (
           <fieldset
             key={index}
+            data-testid={`passenger-section-${index}`}
             className="rounded-xl border border-jsx-gray-200 bg-jsx-gray-50 p-5"
           >
             <legend className="text-base font-semibold text-jsx-black px-1">
@@ -388,7 +389,7 @@ const BookingDetailsPage: NextPage = () => {
         ))}
 
         {/* Shared contact details section */}
-        <fieldset className="rounded-xl border border-jsx-gray-200 bg-jsx-gray-50 p-5">
+        <fieldset data-testid="contact-section" className="rounded-xl border border-jsx-gray-200 bg-jsx-gray-50 p-5">
           <legend className="text-base font-semibold text-jsx-black px-1">
             Contact details
           </legend>
