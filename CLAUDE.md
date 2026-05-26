@@ -10,7 +10,7 @@
 - **Forms**: React Hook Form + Zod
 - **BFF**: Next.js API Routes (proxy to Navitaire, never expose credentials)
 - **Auth**: Guest checkout allowed; optional JWT via httpOnly cookie
-- **Testing**: Vitest + Testing Library + MSW (planned)
+- **Testing**: Vitest + Testing Library + MSW (unit) / Playwright + axe-core (E2E)
 
 ### Key Design Decisions
 
@@ -88,3 +88,20 @@
 
 ### Completed Issues (ralph/prd-35 branch)
 - **#21**: Booking confirmation step — full confirmation screen (PNR, passenger names, flight, seats, total paid), store snapshot + clear pattern, `POST /api/booking/send-confirmation` BFF stub, guest account creation prompt (dismissible), logged-in account association notice, GA4 `booking_completed` event, print-friendly layout, WCAG 2.1 AA
+
+#### Playwright E2E + axe-core
+- Config in `playwright.config.ts` at repo root. `NAVITAIRE_API_URL` is intentionally unset so all BFF routes return deterministic mock data in both local and CI runs.
+- Tests live in `e2e/`. Shared seeder helper `e2e/helpers/booking.ts` writes a Zustand persist payload into `sessionStorage` (key `jsx-booking`) so individual specs can start at any booking step without re-running earlier steps via the UI.
+- `playwright.config.ts` `webServer` runs `next dev` locally (reusing existing server) and `next start` in CI (after the build job produces the `.next/` artifact).
+- `e2e/*.spec.ts` files are excluded from Vitest via `vitest.config.ts`'s `exclude` list — they must NOT import from `vitest`, only `@playwright/test`.
+- axe-core runs via `@axe-core/playwright` (`new AxeBuilder({ page }).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze()`). Any violation fails the test.
+- Session recovery tests (`e2e/session-recovery.spec.ts`) are skipped with `test.skip(true, '...')` pending issue #13.
+- `.github/workflows/playwright.yml` builds then runs E2E tests, uploads HTML report as an artifact on every run, uploads video/trace on failure. Depends on no other CI job (parallel to Lighthouse).
+
+#### Payment Page Stub — `POST /api/booking/pay`
+- `pages/api/booking/pay.ts` stubs the payment finalisation call. Accepts `{ flightId, confirmedTotalPrice, totalPassengers }`, returns `{ success, bookingReference, paymentToken }` with a mock PNR.
+- `pages/booking/payment.tsx` renders a "Pay now" button (`data-testid="pay-button"`) that calls this endpoint, then calls `setPaymentToken` + `setBookingReference` and navigates to confirmation. This enables the Playwright E2E critical-path test to flow through the full booking funnel.
+- The real payment gateway integration (hosted fields, tokenisation) is reserved for issue #20.
+
+### Completed Issues (ralph/prd-35 branch)
+- **#24**: Playwright E2E critical path + axe-core accessibility CI — `playwright.config.ts`, `@axe-core/playwright` integration, `e2e/booking-flow.spec.ts` (full guest booking critical path), `e2e/back-navigation.spec.ts` (data retention on back nav), `e2e/api-failure.spec.ts` (BFF failure recovery via `page.route()`), `e2e/accessibility.spec.ts` (axe-core WCAG 2.1 AA on homepage + all booking steps), `e2e/auth-prefill.spec.ts` (pre-fill for logged-in users, no-overwrite, guest empty form), `e2e/session-recovery.spec.ts` (3 tests skipped pending #13), `.github/workflows/playwright.yml` (build + Playwright + axe CI job with HTML report artifact), `POST /api/booking/pay` BFF stub + payment page "Pay now" button enabling end-to-end flow
