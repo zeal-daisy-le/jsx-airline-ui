@@ -33,6 +33,8 @@
 - Use `useErrorStore` (`stores/errorStore.ts`) for toasts and retry state.
 - Wrap fetch calls with `withRetry` from `lib/api/retry.ts` (2 retries, exponential backoff).
 - Call `onAllRetriesExhausted` (not `showToast`) after retries are exhausted — this surfaces the support contact UI.
+- For data *loading* failures (GET requests), use a plain `fetch` without `withRetry`. Show `showToast` + inline error with a manual retry button. This avoids long retry delays blocking the UI and keeps the step accessible for users who want to skip optional features.
+- `withRetry` is reserved for *submit* mutations where data must be reliably saved.
 
 #### Analytics
 - `bookingEvents.stepViewed(step)` on mount, `bookingEvents.stepCompleted(step, params)` on successful step completion.
@@ -47,3 +49,4 @@
 - **#14**: Flight search step — BFF `/api/search`, search form (RHF+Zod), results, skeletons, GA4 events, error recovery
 - **#15**: Passenger selection step — stepper UI, min-1-adult + infants≤adults constraints, GA4 events
 - **#16**: Traveller details step — multi-passenger RHF+Zod form, per-field blur validation, auth pre-fill, BFF `POST /api/booking/details`, GA4 events, error recovery
+- **#17**: Bags selection step — per-passenger bag option cards (0/1/2 bags), real-time running total, loading skeletons, BFF `GET /api/booking/bags` + `POST /api/booking/bags`, GA4 events, error recovery (showToast + inline retry), back-navigation pre-fill
