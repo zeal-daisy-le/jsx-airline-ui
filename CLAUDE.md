@@ -50,3 +50,10 @@
 - **#15**: Passenger selection step — stepper UI, min-1-adult + infants≤adults constraints, GA4 events
 - **#16**: Traveller details step — multi-passenger RHF+Zod form, per-field blur validation, auth pre-fill, BFF `POST /api/booking/details`, GA4 events, error recovery
 - **#17**: Bags selection step — per-passenger bag option cards (0/1/2 bags), real-time running total, loading skeletons, BFF `GET /api/booking/bags` + `POST /api/booking/bags`, GA4 events, error recovery (showToast + inline retry), back-navigation pre-fill
+- **#18**: Seat map step — interactive cabin layout (15 rows × 6 columns, first class rows 1–3), per-seat availability/occupied/selected/other-passenger states, active-passenger tabs for multi-passenger bookings, auto-advance to next unassigned passenger after selection, skip flow (setSeatAssignments([]) marks step valid without BFF call), BFF `GET /api/booking/seatmap` + `POST /api/booking/seatmap`, GA4 events, error recovery (showToast + inline retry on load; withRetry + onAllRetriesExhausted on submit), back-navigation pre-fill
+
+#### Seat Map — Seat Selection UX
+- `activePassengerIndex` tracks which passenger is being assigned. Clicking a seat assigns it to the active passenger and auto-advances to the next unassigned passenger.
+- `seatToPassenger` (seatNumber → passengerIndex) is derived from `assignments` and used to render which passenger holds each seat; seats held by other passengers are disabled for the currently active passenger.
+- Skip: calls `setSeatAssignments([])` directly — this marks `seats` step valid (so review is accessible) and does NOT call the BFF. Only the "Continue" flow (all passengers seated) calls the BFF `POST /api/booking/seatmap`.
+- The `POST /api/booking/seatmap` Zod schema accepts `assignments` as an empty array (for skip edge cases) or up to 9 entries; seatNumber regex is `/^\d{1,2}[A-F]$/`.
