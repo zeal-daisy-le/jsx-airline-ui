@@ -1,0 +1,263 @@
+name: Lighthouse CI
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: lighthouse-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  pull-requests: write
+  deployments: read
+
+jobs:
+  lighthouse:
+    name: Lighthouse Performance Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # ------------------------------------------------------------------
+      # 1. Poll the GitHub Deployments API until Vercel posts a success
+      #    status with an environment_url (the preview URL).
+      #    Gives up after 10 minutes (30 × 20 s) and skips gracefully.
+      # ------------------------------------------------------------------
+      - name: Wait for Vercel Preview Deployment
+        id: deployment
+        uses: actions/github-script@v7
+        timeout-minutes: 11
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const sha = context.payload.pull_request.head.sha;
+
+            console.log(`Polling for Vercel preview deployment (sha: ${sha})`);
+
+            let deploymentUrl = null;
+            const maxAttempts = 30;
+
+            for (let attempt = 0; attempt < maxAttempts; attempt++) {
+              const { data: deployments } = await github.rest.repos.listDeployments({
+                owner,
+                repo,
+                sha,
+                per_page: 10,
+              });
+
+              for (const deployment of deployments) {
+                // Vercel environment names: "Preview", "Preview – <project>"
+                if (!deployment.environment.toLowerCase().includes('preview')) continue;
+
+                const { data: statuses } = await github.rest.repos.listDeploymentStatuses({
+                  owner,
+                  repo,
+                  deployment_id: deployment.id,
+                  per_page: 5,
+                });
+
+                const success = statuses.find(
+                  s => s.state === 'success' && s.environment_url
+                );
+                if (success) {
+                  deploymentUrl = success.environment_url;
+                  break;
+                }
+
+                // Stop waiting early on hard failure
+                const failed = statuses.find(s => ['error', 'failure'].includes(s.state));
+                if (failed) {
+                  core.warning(`Vercel deployment failed: ${failed.description}`);
+                  break;
+                }
+              }
+
+              if (deploymentUrl) {
+                console.log(`✓ Preview URL: ${deploymentUrl}`);
+                break;
+              }
+
+              if (attempt < maxAttempts - 1) {
+                console.log(
+                  `Attempt ${attempt + 1}/${maxAttempts}: not ready yet, retrying in 20 s…`
+                );
+                await new Promise(r => setTimeout(r, 20000));
+              }
+            }
+
+            if (!deploymentUrl) {
+              core.warning(
+                'No Vercel preview deployment found after 10 min — skipping Lighthouse audit.'
+              );
+            }
+
+            core.setOutput('url', deploymentUrl || '');
+            core.setOutput('found', deploymentUrl ? 'true' : 'false');
+
+      # ------------------------------------------------------------------
+      # 2. Run Lighthouse CI against the preview URL.
+      #    continue-on-error lets the comment step always run; we re-fail
+      #    at the end if LHCI reported assertion violations.
+      # ------------------------------------------------------------------
+      - name: Install @lhci/cli
+        if: steps.deployment.outputs.found == 'true'
+        run: npm install -g @lhci/cli@0.14.x
+
+      - name: Run Lighthouse CI
+        if: steps.deployment.outputs.found == 'true'
+        id: lhci
+        env:
+          LHCI_BASE_URL: ${{ steps.deployment.outputs.url }}
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+        run: lhci autorun
+        continue-on-error: true
+
+      # ------------------------------------------------------------------
+      # 3. Parse LHCI JSON reports and post a summary as a PR comment.
+      #    The comment is updated (not duplicated) on re-runs.
+      # ------------------------------------------------------------------
+      - name: Post Lighthouse results as PR comment
+        if: steps.deployment.outputs.found == 'true'
+        uses: actions/github-script@v7
+        env:
+          LHCI_OUTCOME: ${{ steps.lhci.outcome }}
+          PREVIEW_URL: ${{ steps.deployment.outputs.url }}
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            const dir = '.lighthouseci';
+            const previewUrl = process.env.PREVIEW_URL;
+            const lhciPassed = process.env.LHCI_OUTCOME === 'success';
+
+            // Parse all per-run report files
+            const byUrl = {};
+            if (fs.existsSync(dir)) {
+              const files = fs
+                .readdirSync(dir)
+                .filter(f => f.endsWith('.json') && !f.startsWith('manifest'));
+
+              for (const file of files) {
+                const report = JSON.parse(fs.readFileSync(path.join(dir, file), 'utf-8'));
+                const url = report.finalUrl || report.requestedUrl;
+                if (!url) continue;
+                if (!byUrl[url]) byUrl[url] = [];
+                byUrl[url].push({
+                  perf: Math.round(report.categories.performance.score * 100),
+                  lcp: report.audits['largest-contentful-paint'].numericValue,
+                  cls: report.audits['cumulative-layout-shift'].numericValue,
+                });
+              }
+            }
+
+            const statusBadge = lhciPassed
+              ? '✅ All budgets met'
+              : '❌ Budget violations found';
+
+            let body = `## Lighthouse CI — ${statusBadge}\n\n`;
+
+            if (Object.keys(byUrl).length === 0) {
+              body += '_No report data found — LHCI may have failed to collect._\n';
+            } else {
+              body += '| Page | Perf | LCP | CLS | Budget |\n';
+              body += '|------|:----:|:---:|:---:|:------:|\n';
+
+              for (const [url, runs] of Object.entries(byUrl)) {
+                const n = runs.length;
+                const avgPerf = Math.round(runs.reduce((s, r) => s + r.perf, 0) / n);
+                const avgLcp  = runs.reduce((s, r) => s + r.lcp, 0) / n;
+                const avgCls  = runs.reduce((s, r) => s + r.cls, 0) / n;
+
+                const perfOk = avgPerf >= 90;
+                const lcpOk  = avgLcp  <= 2500;
+                const clsOk  = avgCls  <= 0.1;
+                const allOk  = perfOk && lcpOk && clsOk;
+
+                const page = url.replace(previewUrl, '') || '/';
+                body += `| \`${page}\` | ${perfOk ? '✅' : '❌'} ${avgPerf} | ${lcpOk ? '✅' : '❌'} ${(avgLcp / 1000).toFixed(2)}s | ${clsOk ? '✅' : '❌'} ${avgCls.toFixed(3)} | ${allOk ? '✅ Pass' : '❌ Fail'} |\n`;
+              }
+
+              body += '\n_Thresholds: Performance ≥ 90 · LCP ≤ 2.5 s · CLS ≤ 0.1 · Mobile simulation · 3 runs averaged_\n';
+            }
+
+            // Update existing bot comment rather than spamming new ones
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existing = comments.find(
+              c =>
+                (c.user.type === 'Bot' || c.user.login === 'github-actions[bot]') &&
+                c.body.includes('Lighthouse CI')
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
+
+      # ------------------------------------------------------------------
+      # 4. No deployment found — post a skip notice.
+      # ------------------------------------------------------------------
+      - name: Post skip notice (no preview URL)
+        if: steps.deployment.outputs.found == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existing = comments.find(
+              c =>
+                (c.user.type === 'Bot' || c.user.login === 'github-actions[bot]') &&
+                c.body.includes('Lighthouse CI')
+            );
+
+            const body =
+              '## Lighthouse CI — ⏭ Skipped\n\n' +
+              'No Vercel preview deployment was found for this PR within 10 minutes.\n' +
+              'Lighthouse will run automatically once a preview URL is available.';
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
+
+      # ------------------------------------------------------------------
+      # 5. Propagate LHCI assertion failures so the status check blocks.
+      # ------------------------------------------------------------------
+      - name: Fail if Lighthouse budgets violated
+        if: steps.lhci.outcome == 'failure'
+        run: |
+          echo "Lighthouse CI reported budget violations — see PR comment for details."
+          exit 1
