@@ -57,3 +57,13 @@
 - `seatToPassenger` (seatNumber → passengerIndex) is derived from `assignments` and used to render which passenger holds each seat; seats held by other passengers are disabled for the currently active passenger.
 - Skip: calls `setSeatAssignments([])` directly — this marks `seats` step valid (so review is accessible) and does NOT call the BFF. Only the "Continue" flow (all passengers seated) calls the BFF `POST /api/booking/seatmap`.
 - The `POST /api/booking/seatmap` Zod schema accepts `assignments` as an empty array (for skip edge cases) or up to 9 entries; seatNumber regex is `/^\d{1,2}[A-F]$/`.
+
+#### Booking Review — Price Confirmation
+- Review page fetches bag option prices via `GET /api/booking/bags` on mount (plain fetch, no retry) to compute the price breakdown. If this fails, bag prices show as "–" and the total shows "Price unavailable", but the user can still proceed.
+- Seat prices are derived from the seat number: rows 1–3 = first class at $45, rows 4+ = economy at $0. This matches the seat map mock and must stay in sync with `FIRST_CLASS_ROWS` in `pages/api/booking/seatmap.ts`.
+- Taxes are estimated at 12% of (base fare + bags + seat fees) and rounded to the nearest dollar.
+- On "Confirm & pay": `POST /api/booking/confirm-price` is called with `withRetry`. The BFF re-confirms price with Navitaire (pending #5). If `confirmed: false` is returned, a price-change banner replaces the CTA button — user must accept or cancel. `markStepValid("review")` is called only after a confirmed or accepted-price-change response, not on page load.
+- `contactDetails` is NOT in the bookingStore `partialize` list and does not persist to sessionStorage — it is available within the session only.
+
+### Completed Issues (ralph/prd-35 branch)
+- **#19**: Booking review step — read-only order summary (flight, passengers, bags, seats, price breakdown), BFF `POST /api/booking/confirm-price`, price-change dialog (user must accept updated price before proceeding), GA4 events, error recovery (showToast + retry on bag load; withRetry + onAllRetriesExhausted on confirm-price)
