@@ -67,3 +67,13 @@
 
 ### Completed Issues (ralph/prd-35 branch)
 - **#19**: Booking review step — read-only order summary (flight, passengers, bags, seats, price breakdown), BFF `POST /api/booking/confirm-price`, price-change dialog (user must accept updated price before proceeding), GA4 events, error recovery (showToast + retry on bag load; withRetry + onAllRetriesExhausted on confirm-price)
+
+#### Lighthouse CI — Performance Budget Gates
+- Config in `.lighthouserc.js` at repo root; base URL injected via `LHCI_BASE_URL` env var so the same config works locally (fallback `http://localhost:3000`) and in CI against the Vercel preview URL.
+- Budgets: mobile Performance ≥ 90, LCP ≤ 2.5 s, CLS ≤ 0.1. Enforced on homepage (`/`) and first booking step (`/booking/flights`). 3 runs averaged per URL.
+- `.github/workflows/lighthouse.yml` polls the GitHub Deployments API (up to 10 min) for the Vercel preview URL, installs `@lhci/cli@0.14.x` globally, then runs `lhci autorun`. Assertion failures cause the job to exit non-zero, blocking PR merges via required status checks.
+- Results are posted/updated as a PR comment (markdown table with per-metric pass/fail icons) regardless of pass or fail. If no Vercel preview is found, a skip notice is posted instead.
+- `LHCI_GITHUB_APP_TOKEN` (optional) enables the Lighthouse CI GitHub App for richer status annotations; the workflow works without it.
+
+### Completed Issues (ralph/prd-35 branch)
+- **#25**: Lighthouse CI — `.lighthouserc.js` (mobile budget: perf ≥ 90, LCP ≤ 2.5 s, CLS ≤ 0.1, 3 runs, homepage + `/booking/flights`), `.github/workflows/lighthouse.yml` (Vercel preview URL detection via GitHub Deployments API, `@lhci/cli` autorun, PR comment with score breakdown, blocking status check on budget violations)
