@@ -233,7 +233,7 @@ describe("useBookingGuard — back navigation data retention", () => {
     act(() => {
       useBookingStore.getState().setSelectedFlight(flight)
       useBookingStore.getState().setPassengers(config)
-      useBookingStore.getState().setTravelerInfo([{ firstName: "Bob", lastName: "Jones", dateOfBirth: "1990-01-01", documentType: "passport", documentNumber: "X1" }])
+      useBookingStore.getState().setTravelerInfo([{ firstName: "Bob", lastName: "Jones", dateOfBirth: "1990-01-01", documentType: "passport", documentNumber: "X1", nationality: "US" }])
       useBookingStore.setState({
         stepValidity: {
           ...INITIAL_VALIDITY,

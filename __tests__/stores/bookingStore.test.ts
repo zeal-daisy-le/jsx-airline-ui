@@ -22,6 +22,7 @@ const MOCK_TRAVELER: TravelerInfo = {
   dateOfBirth: "1990-01-15",
   documentType: "passport",
   documentNumber: "A12345678",
+  nationality: "US",
 }
 const MOCK_BAGS: BagSelection[] = [{ passengerIndex: 0, checkedBags: 1 }]
 const MOCK_SEATS: SeatAssignment[] = [{ passengerIndex: 0, seatNumber: "3A" }]
