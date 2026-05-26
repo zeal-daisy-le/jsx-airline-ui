@@ -64,6 +64,7 @@
 - Taxes are estimated at 12% of (base fare + bags + seat fees) and rounded to the nearest dollar.
 - On "Confirm & pay": `POST /api/booking/confirm-price` is called with `withRetry`. The BFF re-confirms price with Navitaire (pending #5). If `confirmed: false` is returned, a price-change banner replaces the CTA button — user must accept or cancel. `markStepValid("review")` is called only after a confirmed or accepted-price-change response, not on page load.
 - `contactDetails` is NOT in the bookingStore `partialize` list and does not persist to sessionStorage — it is available within the session only.
+- `confirmedTotalPrice: number | null` is set by the review page when `confirm-price` returns `confirmed: true` (or when the user accepts a price change). It is read by the confirmation page to display "Total paid". It is persisted to sessionStorage.
 
 ### Completed Issues (ralph/prd-35 branch)
 - **#19**: Booking review step — read-only order summary (flight, passengers, bags, seats, price breakdown), BFF `POST /api/booking/confirm-price`, price-change dialog (user must accept updated price before proceeding), GA4 events, error recovery (showToast + retry on bag load; withRetry + onAllRetriesExhausted on confirm-price)
@@ -75,5 +76,15 @@
 - Results are posted/updated as a PR comment (markdown table with per-metric pass/fail icons) regardless of pass or fail. If no Vercel preview is found, a skip notice is posted instead.
 - `LHCI_GITHUB_APP_TOKEN` (optional) enables the Lighthouse CI GitHub App for richer status annotations; the workflow works without it.
 
+#### Booking Confirmation — Snapshot + Store Clear Pattern
+- The confirmation page does NOT use `useBookingGuard`. Instead it waits for `hasHydrated`, reads `bookingReference` from the raw store state, and redirects to `/booking/flights` if it is null.
+- On mount: all booking data is snapshotted into local React state, `trackEvent("booking_completed")` is fired, `POST /api/booking/send-confirmation` is called (fire-and-forget — page displays regardless of email delivery), then `resetBooking()` clears the Zustand store + sessionStorage.
+- The page renders exclusively from the local snapshot after clearing — it does NOT subscribe to store fields after mount, so store clearing does not blank the display.
+- Guest users see a non-blocking account creation prompt (dismissible). Logged-in users see an association notice. Auth status is determined via `GET /api/auth/me` on mount.
+- The confirmation page is print-friendly: SiteHeader is wrapped in `print:hidden`, action buttons are `print:hidden`.
+
 ### Completed Issues (ralph/prd-35 branch)
 - **#25**: Lighthouse CI — `.lighthouserc.js` (mobile budget: perf ≥ 90, LCP ≤ 2.5 s, CLS ≤ 0.1, 3 runs, homepage + `/booking/flights`), `.github/workflows/lighthouse.yml` (Vercel preview URL detection via GitHub Deployments API, `@lhci/cli` autorun, PR comment with score breakdown, blocking status check on budget violations)
+
+### Completed Issues (ralph/prd-35 branch)
+- **#21**: Booking confirmation step — full confirmation screen (PNR, passenger names, flight, seats, total paid), store snapshot + clear pattern, `POST /api/booking/send-confirmation` BFF stub, guest account creation prompt (dismissible), logged-in account association notice, GA4 `booking_completed` event, print-friendly layout, WCAG 2.1 AA

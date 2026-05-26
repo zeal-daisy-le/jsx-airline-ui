@@ -209,6 +209,7 @@ const BookingReviewPage: NextPage = () => {
   const bagSelections = useBookingStore((s) => s.bagSelections)
   const seatAssignments = useBookingStore((s) => s.seatAssignments)
   const markStepValid = useBookingStore((s) => s.markStepValid)
+  const setConfirmedTotalPrice = useBookingStore((s) => s.setConfirmedTotalPrice)
 
   const showToast = useErrorStore((s) => s.showToast)
   const setRetrying = useErrorStore((s) => s.setRetrying)
@@ -326,6 +327,7 @@ const BookingReviewPage: NextPage = () => {
         return
       }
 
+      setConfirmedTotalPrice(total)
       markStepValid("review")
       bookingEvents.stepCompleted("review", { totalPrice: total })
       router.push("/booking/payment")
@@ -340,6 +342,7 @@ const BookingReviewPage: NextPage = () => {
     total,
     totalPassengers,
     markStepValid,
+    setConfirmedTotalPrice,
     setRetrying,
     onAllRetriesExhausted,
     router,
@@ -347,13 +350,14 @@ const BookingReviewPage: NextPage = () => {
 
   const onAcceptPriceChange = useCallback(() => {
     if (!priceChange) return
+    setConfirmedTotalPrice(priceChange.newPrice)
     markStepValid("review")
     bookingEvents.stepCompleted("review", {
       totalPrice: priceChange.newPrice,
       priceChanged: true,
     })
     router.push("/booking/payment")
-  }, [priceChange, markStepValid, router])
+  }, [priceChange, markStepValid, setConfirmedTotalPrice, router])
 
   const onCancelPriceChange = useCallback(() => {
     setPriceChange(null)

@@ -78,6 +78,8 @@ interface BookingState {
   /** Gateway token reference only — raw card data never enters this store */
   paymentToken: string | null
   bookingReference: string | null
+  /** Price confirmed by confirm-price BFF — set by review step, used on confirmation page */
+  confirmedTotalPrice: number | null
 
   // Step navigation
   setCurrentStep: (step: BookingStep) => void
@@ -96,6 +98,7 @@ interface BookingState {
   setSeatAssignments: (seats: SeatAssignment[]) => void
   setPaymentToken: (token: string) => void
   setBookingReference: (ref: string) => void
+  setConfirmedTotalPrice: (price: number) => void
 
   resetBooking: () => void
   _setHasHydrated: () => void
@@ -122,6 +125,7 @@ const INITIAL_DATA = () => ({
   seatAssignments: [] as SeatAssignment[],
   paymentToken: null as string | null,
   bookingReference: null as string | null,
+  confirmedTotalPrice: null as number | null,
 })
 
 // ── Store ─────────────────────────────────────────────────────────────────────
@@ -189,6 +193,8 @@ export const useBookingStore = create<BookingState>()(
 
       setBookingReference: (ref) => set({ bookingReference: ref }),
 
+      setConfirmedTotalPrice: (price) => set({ confirmedTotalPrice: price }),
+
       resetBooking: () => set({ ...INITIAL_DATA(), hasHydrated: true }),
 
       _setHasHydrated: () => set({ hasHydrated: true }),
@@ -212,6 +218,7 @@ export const useBookingStore = create<BookingState>()(
         seatAssignments: state.seatAssignments,
         paymentToken: state.paymentToken,
         bookingReference: state.bookingReference,
+        confirmedTotalPrice: state.confirmedTotalPrice,
       }),
       onRehydrateStorage: () => (state) => {
         if (state) state._setHasHydrated()
