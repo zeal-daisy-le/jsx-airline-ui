@@ -43,6 +43,12 @@ export interface TravelerInfo {
   dateOfBirth: string
   documentType: "passport" | "id"
   documentNumber: string
+  nationality: string
+}
+
+export interface ContactDetails {
+  email: string
+  phone: string
 }
 
 export interface BagSelection {
@@ -66,6 +72,7 @@ interface BookingState {
   selectedFlight: SelectedFlight | null
   passengers: PassengerCount
   travelerInfo: TravelerInfo[]
+  contactDetails: ContactDetails | null
   bagSelections: BagSelection[]
   seatAssignments: SeatAssignment[]
   /** Gateway token reference only — raw card data never enters this store */
@@ -84,6 +91,7 @@ interface BookingState {
   setSelectedFlight: (flight: SelectedFlight | null) => void
   setPassengers: (passengers: PassengerCount) => void
   setTravelerInfo: (info: TravelerInfo[]) => void
+  setContactDetails: (contact: ContactDetails) => void
   setBagSelections: (bags: BagSelection[]) => void
   setSeatAssignments: (seats: SeatAssignment[]) => void
   setPaymentToken: (token: string) => void
@@ -109,6 +117,7 @@ const INITIAL_DATA = () => ({
   selectedFlight: null as SelectedFlight | null,
   passengers: { adults: 1, children: 0, infants: 0 } as PassengerCount,
   travelerInfo: [] as TravelerInfo[],
+  contactDetails: null as ContactDetails | null,
   bagSelections: [] as BagSelection[],
   seatAssignments: [] as SeatAssignment[],
   paymentToken: null as string | null,
@@ -157,6 +166,8 @@ export const useBookingStore = create<BookingState>()(
           travelerInfo: info,
           stepValidity: { ...invalidateFrom(state.stepValidity, "bags"), details: true },
         })),
+
+      setContactDetails: (contact) => set({ contactDetails: contact }),
 
       setBagSelections: (bags) =>
         set((state) => ({
