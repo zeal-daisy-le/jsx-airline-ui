@@ -62,7 +62,7 @@ test.describe("Guest booking critical path", () => {
     // ── Step 4: Bags selection ───────────────────────────────────────────────
     await page.waitForURL(/\/booking\/bags/, { timeout: 10_000 })
     await expect(
-      page.getByRole("heading", { name: /Bags/i })
+      page.getByRole("heading", { name: /Bag allowances/i })
     ).toBeVisible()
 
     // Select 1 checked bag for passenger 0

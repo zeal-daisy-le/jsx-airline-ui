@@ -383,7 +383,7 @@ const PassengerCountField = ({
     <label htmlFor={id} className="block text-sm font-medium text-jsx-gray-700">
       {label}
       {sublabel && (
-        <span className="ml-1 text-xs font-normal text-jsx-gray-400">
+        <span className="ml-1 text-xs font-normal text-jsx-gray-500">
           ({sublabel})
         </span>
       )}

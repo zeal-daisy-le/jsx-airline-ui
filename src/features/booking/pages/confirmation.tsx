@@ -230,7 +230,7 @@ const BookingConfirmationPage: NextPage = () => {
             >
               {snapshot.bookingReference}
             </p>
-            <p className="mt-3 text-xs text-jsx-gray-400">
+            <p className="mt-3 text-xs text-jsx-gray-500">
               Save this reference — you&apos;ll need it to manage your booking.
             </p>
           </div>

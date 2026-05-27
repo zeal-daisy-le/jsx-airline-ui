@@ -58,7 +58,7 @@ export function StepProgress({ currentStep, stepValidity }: StepProgressProps) {
                     "hidden text-xs sm:block",
                     isCurrent && "font-semibold text-jsx-red",
                     isPast && !isCurrent && "text-jsx-gray-600",
-                    !isCompleted && !isCurrent && "text-jsx-gray-400"
+                    !isCompleted && !isCurrent && "text-jsx-gray-500"
                   )}
                   aria-hidden="true"
                 >

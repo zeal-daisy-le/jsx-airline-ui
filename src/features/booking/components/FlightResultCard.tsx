@@ -54,7 +54,7 @@ export function FlightResultCard({
       aria-label={`${flight.flightNumber} departing at ${formatTime(flight.departureTime)}, ${formatPrice(totalPrice)} total`}
     >
       {/* Flight number header */}
-      <p className="mb-3 text-xs font-medium text-jsx-gray-400">
+      <p className="mb-3 text-xs font-medium text-jsx-gray-500">
         {flight.flightNumber}
       </p>
 
@@ -71,16 +71,16 @@ export function FlightResultCard({
 
           {/* Duration line */}
           <div className="flex flex-1 flex-col items-center gap-1">
-            <p className="text-xs text-jsx-gray-400">{formatDuration(flight.durationMinutes)}</p>
+            <p className="text-xs text-jsx-gray-500">{formatDuration(flight.durationMinutes)}</p>
             <div className="flex w-full items-center gap-1">
               <div className="h-px flex-1 bg-jsx-gray-200" />
               <Plane
-                className="h-3.5 w-3.5 rotate-90 text-jsx-gray-400"
+                className="h-3.5 w-3.5 rotate-90 text-jsx-gray-500"
                 aria-hidden="true"
               />
               <div className="h-px flex-1 bg-jsx-gray-200" />
             </div>
-            <p className="text-xs text-jsx-gray-400">{flight.aircraft}</p>
+            <p className="text-xs text-jsx-gray-500">{flight.aircraft}</p>
           </div>
 
           {/* Arrival */}

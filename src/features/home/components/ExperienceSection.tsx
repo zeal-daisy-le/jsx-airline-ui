@@ -40,6 +40,7 @@ export function ExperienceSection() {
         style={{ scrollbarWidth: "none" }}
         role="list"
         aria-label="JSX experience highlights"
+        tabIndex={0}
       >
         {cards.map((card) => (
           <article

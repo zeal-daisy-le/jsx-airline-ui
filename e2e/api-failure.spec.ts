@@ -57,7 +57,7 @@ test.describe("API failure recovery", () => {
 
     // Inline error + retry button should appear
     await expect(
-      page.getByText(/Unable to load bag options/i)
+      page.getByText(/Unable to load bag options/i).first()
     ).toBeVisible({ timeout: 8_000 })
     await expect(
       page.getByRole("button", { name: /Try again/i })
@@ -88,7 +88,7 @@ test.describe("API failure recovery", () => {
 
     // Error + retry
     await expect(
-      page.getByText(/Unable to load seat map/i)
+      page.getByText(/Unable to load seat map/i).first()
     ).toBeVisible({ timeout: 8_000 })
 
     // Skip option still available

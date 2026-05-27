@@ -137,7 +137,7 @@ function SeatMapGrid({
 
             <div className="flex items-center gap-1 mb-1">
               {/* Row label */}
-              <div className="w-6 text-right text-xs text-jsx-gray-400 mr-1 shrink-0" aria-hidden="true">
+              <div className="w-6 text-right text-xs text-jsx-gray-500 mr-1 shrink-0" aria-hidden="true">
                 {row}
               </div>
 

@@ -153,14 +153,31 @@ const BookingDetailsPage: NextPage = () => {
     formState: { errors, isSubmitting },
     setValue,
     getValues,
+    reset,
   } = useForm<DetailsFormValues>({
     resolver: zodResolver(detailsSchema),
     mode: "onBlur",
     defaultValues,
   })
 
-  // useFieldArray requires a separate control import; use register directly since
-  // the passenger count is fixed at mount.
+  useEffect(() => {
+    if (!canAccess) return
+    if (storedTravelerInfo.length === 0 && !storedContactDetails) return
+    reset({
+      passengers: passengerList.map((_, i) => ({
+        firstName: storedTravelerInfo[i]?.firstName ?? "",
+        lastName: storedTravelerInfo[i]?.lastName ?? "",
+        dateOfBirth: storedTravelerInfo[i]?.dateOfBirth ?? "",
+        documentType: (storedTravelerInfo[i]?.documentType ?? "passport") as "passport" | "id",
+        documentNumber: storedTravelerInfo[i]?.documentNumber ?? "",
+        nationality: storedTravelerInfo[i]?.nationality ?? "",
+      })),
+      contact: {
+        email: storedContactDetails?.email ?? "",
+        phone: storedContactDetails?.phone ?? "",
+      },
+    })
+  }, [canAccess]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (canAccess) bookingEvents.stepViewed("details")
