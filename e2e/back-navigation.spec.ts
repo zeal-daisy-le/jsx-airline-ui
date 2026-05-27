@@ -52,7 +52,9 @@ test.describe("Back navigation + data retention", () => {
       MOCK_TRAVELER.lastName
     )
     // Note: contactDetails is intentionally not persisted to sessionStorage
-    // (not in bookingStore's partialize list), so we don't assert on it here
+    // (not in bookingStore's partialize list), so we re-fill them before submitting
+    await page.fill("#contact\\.email", MOCK_CONTACT.email)
+    await page.fill("#contact\\.phone", MOCK_CONTACT.phone)
 
     // Navigate forward again to bags — previously selected option is pre-filled
     await page.getByRole("button", { name: "Continue" }).click()
