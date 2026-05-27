@@ -72,7 +72,7 @@ test.describe("Guest booking critical path", () => {
     // ── Step 5: Seat selection (skip) ────────────────────────────────────────
     await page.waitForURL(/\/booking\/seats/, { timeout: 10_000 })
     await expect(
-      page.getByRole("heading", { name: /Seat selection/i })
+      page.getByRole("heading", { name: /Choose your seats/i })
     ).toBeVisible()
 
     await page.getByTestId("skip-link").click()

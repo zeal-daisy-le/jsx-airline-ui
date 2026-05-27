@@ -233,7 +233,7 @@ const BookingBagsPage: NextPage = () => {
                         />
                         <div>
                           <p className="text-sm font-medium text-jsx-black">{option.label}</p>
-                          <p className="text-xs text-jsx-gray-500">{option.description}</p>
+                          <p className={`text-xs ${isSelected ? "text-jsx-gray-600" : "text-jsx-gray-500"}`}>{option.description}</p>
                         </div>
                       </div>
                       <span className="text-sm font-semibold text-jsx-black">
