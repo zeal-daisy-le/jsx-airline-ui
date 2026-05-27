@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
-# ralph.sh — Autonomous agent loop for jsx-airline-ui
+# ralph.sh — Autonomous agent that picks up and implements one issue at a time.
 #
-# Ralph reads the PRD parent issue on GitHub, picks the highest-priority
-# unblocked child issue, implements it on a shared branch, runs tests,
-# updates progress notes, and loops until done or the iteration cap is hit.
+# Each run picks the highest-priority unblocked child issue from the PRD parent,
+# implements it, commits, pushes, and logs progress. No PR is created.
 #
 # Usage:
-#   ./ralph.sh <iterations>        # Run up to N iterations (one issue per iteration)
+#   ./ralph.sh              # Pick up and implement the next issue
+#
+# Progress is tracked in:
+#   .ralph/progress/        # Per-issue markdown files + STATUS.md index
 #
 # Requirements:
 #   - gh CLI authenticated (gh auth status)
@@ -18,29 +20,40 @@ set -euo pipefail
 REPO="zeal-daisy-le/jsx-airline-ui"
 PRD_ISSUE=35
 BRANCH="ralph/prd-${PRD_ISSUE}"
-PROGRESS_DIR=".ralph/progress/${BRANCH}"
-PROGRESS_FILE="${PROGRESS_DIR}/progress.txt"
-
-# ── Argument parsing ──────────────────────────────────────────────────────────
-if [ -z "${1:-}" ]; then
-  echo "Usage: $0 <iterations>"
-  exit 1
-fi
-
-ITERATIONS="$1"
+PROGRESS_DIR=".ralph/progress"
+STATUS_FILE="${PROGRESS_DIR}/STATUS.md"
 
 # ── Setup ─────────────────────────────────────────────────────────────────────
 mkdir -p "$PROGRESS_DIR"
 
-# ── Main loop ─────────────────────────────────────────────────────────────────
-for ((i=1; i<=ITERATIONS; i++)); do
-  echo "-------------------------"
-  echo "[ralph] Iteration $i of $ITERATIONS"
-  echo "-------------------------"
+if [ ! -f "$STATUS_FILE" ]; then
+  cat > "$STATUS_FILE" <<'EOF'
+# Ralph Progress — PRD #35
 
-  PROGRESS_CONTEXT="$(cat "$PROGRESS_FILE" 2>/dev/null || echo 'No progress recorded yet.')"
+| Issue | Title | Status | Date | Notes |
+|-------|-------|--------|------|-------|
+EOF
+fi
 
-  result=$(claude --permission-mode acceptEdits -p \
+# ── Build progress context from existing issue files ─────────────────────────
+PROGRESS_CONTEXT=""
+for f in "$PROGRESS_DIR"/issue-*.md; do
+  [ -f "$f" ] || continue
+  PROGRESS_CONTEXT="${PROGRESS_CONTEXT}$(cat "$f")
+---
+"
+done
+
+if [ -z "$PROGRESS_CONTEXT" ]; then
+  PROGRESS_CONTEXT="No issues implemented yet."
+fi
+
+# ── Run one issue ────────────────────────────────────────────────────────────
+echo "==============================="
+echo "[ralph] Picking up next issue..."
+echo "==============================="
+
+result=$(claude --permission-mode acceptEdits -p \
 "You are Ralph, an autonomous development agent for the JSX Airline UI project.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -49,7 +62,7 @@ PROGRESS SO FAR
 ${PROGRESS_CONTEXT}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-YOUR TASKS FOR THIS ITERATION
+YOUR TASK
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 1. Read PRD parent issue #${PRD_ISSUE} and all child issues on GitHub repo ${REPO}. Find the highest-priority open child issue that has no open blockers and is not already labelled 'in-progress' or 'ralph-done'.
 2. Ensure you are on the main branch and pull the latest from origin/main.
@@ -57,12 +70,28 @@ YOUR TASKS FOR THIS ITERATION
 4. Implement the chosen issue completely — every acceptance criterion must be met. Include unit tests where required.
 5. Run 'npm test' and confirm all tests pass before committing.
 6. Update CLAUDE.md if any architectural decisions were made that a future agent should know about.
-7. Append a brief one-paragraph summary of what you implemented to '${PROGRESS_FILE}'.
+7. Write a progress file at '${PROGRESS_DIR}/issue-<NUMBER>.md' with this format:
+
+   # Issue #<NUMBER> — <Title>
+   **Date:** <YYYY-MM-DD>
+   **Status:** done
+
+   ## Summary
+   <One paragraph describing what was implemented.>
+
+   ## Files changed
+   <Bulleted list of key files added or modified.>
+
+   ## Tests
+   <How many tests were added. Total test count after this issue.>
+
 8. On GitHub, add label 'ralph-done' to the worked issue and post a comment summarising the implementation.
 9. Commit all changes with a message referencing the issue number, then push to origin/${BRANCH}.
 
-ONLY IMPLEMENT ONE ISSUE PER ITERATION.
-Do NOT open a PR — that is handled separately.
+IMPORTANT RULES:
+- Implement exactly ONE issue, then stop.
+- Do NOT open a pull request. PRs are handled separately.
+- Do NOT modify ${STATUS_FILE} — that is updated by this script after you finish.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 FIGMA DESIGN SYSTEM — MANDATORY FOR ALL UI WORK
@@ -98,27 +127,43 @@ ARCHITECTURE (locked in)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 SIGNALS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-If ALL child issues of #${PRD_ISSUE} are complete, output exactly:
-  <promise>COMPLETE</promise>
+At the very end of your output, include exactly ONE of these signals:
 
-If you need additional permissions not already in .claude/settings.json,
-first verify you do not already have them, then output exactly:
-  <promise>NEED_PERMISSIONS</promise>
+If the issue was implemented successfully:
+  <signal>DONE:#<NUMBER>:<TITLE></signal>
+
+If ALL child issues of #${PRD_ISSUE} are complete:
+  <signal>COMPLETE</signal>
+
+If you need additional permissions:
+  <signal>NEED_PERMISSIONS</signal>
 followed by the specific permissions required.")
 
-  echo "$result"
+echo "$result"
+echo ""
+
+# ── Update STATUS.md based on signal ─────────────────────────────────────────
+if [[ "$result" == *"<signal>COMPLETE</signal>"* ]]; then
+  echo "[ralph] All issues complete. Ralph is done."
+  exit 0
+fi
+
+if [[ "$result" == *"<signal>NEED_PERMISSIONS</signal>"* ]]; then
+  echo "[ralph] Additional permissions required — check output above."
+  exit 1
+fi
+
+if [[ "$result" =~ \<signal\>DONE:#([0-9]+):(.+)\</signal\> ]]; then
+  ISSUE_NUM="${BASH_REMATCH[1]}"
+  ISSUE_TITLE="${BASH_REMATCH[2]}"
+  TODAY=$(date +%Y-%m-%d)
+
+  echo "| #${ISSUE_NUM} | ${ISSUE_TITLE} | done | ${TODAY} | [details](issue-${ISSUE_NUM}.md) |" >> "$STATUS_FILE"
+
   echo ""
-
-  if [[ "$result" == *"<promise>COMPLETE</promise>"* ]]; then
-    echo "[ralph] All issues complete. Ralph is done."
-    exit 0
-  fi
-
-  if [[ "$result" == *"<promise>NEED_PERMISSIONS</promise>"* ]]; then
-    echo "[ralph] Additional permissions required — check output above and update .claude/settings.json."
-    exit 1
-  fi
-
-done
-
-exit 0
+  echo "[ralph] Issue #${ISSUE_NUM} complete. Progress logged."
+  echo "[ralph] Run ./ralph.sh again to pick up the next issue."
+else
+  echo "[ralph] Could not parse completion signal. Check output above."
+  exit 1
+fi
