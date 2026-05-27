@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JSX Airline UI — Skills &amp; Ralph Workflow</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            human: { light: '#EFF6FF', DEFAULT: '#3B82F6', dark: '#1E40AF', border: '#93C5FD' },
+            ralph: { light: '#F0FDF4', DEFAULT: '#22C55E', dark: '#166534', border: '#86EFAC' },
+            both:  { light: '#FFF7ED', DEFAULT: '#F97316', dark: '#9A3412', border: '#FDBA74' },
+            phase: { light: '#FAF5FF', DEFAULT: '#A855F7', dark: '#6B21A8', border: '#D8B4FE' },
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+    .legend-dot { width: 14px; height: 14px; border-radius: 50%; display: inline-block; }
+    .card { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+    .card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+    .mermaid { display: flex; justify-content: center; }
+    .mermaid svg { max-width: 100%; }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-900 antialiased">
+
+  <!-- Header -->
+  <header class="bg-white border-b border-gray-200 sticky top-0 z-10">
+    <div class="max-w-7xl mx-auto px-6 py-5">
+      <h1 class="text-2xl font-bold tracking-tight">JSX Airline UI — Skills &amp; Ralph Workflow</h1>
+      <p class="text-gray-500 mt-1">How custom skills, Ralph (autonomous agent), and the human developer collaborate end-to-end.</p>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-6 py-10 space-y-14">
+
+    <!-- Legend -->
+    <section class="flex flex-wrap gap-6 items-center bg-white rounded-xl border border-gray-200 px-6 py-4">
+      <span class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Legend</span>
+      <span class="flex items-center gap-2"><span class="legend-dot bg-human"></span><span class="text-sm font-medium">Human</span></span>
+      <span class="flex items-center gap-2"><span class="legend-dot bg-ralph"></span><span class="text-sm font-medium">Ralph (autonomous agent)</span></span>
+      <span class="flex items-center gap-2"><span class="legend-dot bg-both"></span><span class="text-sm font-medium">Human + Claude interactive</span></span>
+      <span class="flex items-center gap-2"><span class="legend-dot bg-phase"></span><span class="text-sm font-medium">Phase / Gate</span></span>
+    </section>
+
+    <!-- ───────── MAIN FLOW DIAGRAM ───────── -->
+    <section>
+      <h2 class="text-xl font-bold mb-4">End-to-End Workflow</h2>
+      <div class="bg-white rounded-xl border border-gray-200 p-8 overflow-x-auto">
+        <pre class="mermaid">
+%%{init: {'theme': 'base', 'themeVariables': {
+  'primaryColor': '#EFF6FF',
+  'primaryTextColor': '#1E40AF',
+  'primaryBorderColor': '#93C5FD',
+  'secondaryColor': '#F0FDF4',
+  'secondaryTextColor': '#166534',
+  'secondaryBorderColor': '#86EFAC',
+  'tertiaryColor': '#FFF7ED',
+  'tertiaryTextColor': '#9A3412',
+  'lineColor': '#6B7280',
+  'fontSize': '14px'
+}}}%%
+flowchart TD
+  classDef human fill:#EFF6FF,stroke:#3B82F6,stroke-width:2px,color:#1E40AF
+  classDef ralph fill:#F0FDF4,stroke:#22C55E,stroke-width:2px,color:#166534
+  classDef interactive fill:#FFF7ED,stroke:#F97316,stroke-width:2px,color:#9A3412
+  classDef phase fill:#FAF5FF,stroke:#A855F7,stroke-width:2px,color:#6B21A8
+  classDef gate fill:#FEF2F2,stroke:#EF4444,stroke-width:2px,color:#991B1B
+
+  %% ── Phase 1: Discovery & Design ──
+  P1["🔮 PHASE 1 — Discovery & Design"]:::phase
+
+  A1["Human has a feature idea\nor identifies a problem"]:::human
+  A2["/grill-me\nStress-test the plan interactively\n(Human + Claude)"]:::interactive
+  A3["/grill-with-docs\nChallenge plan against domain model,\nupdate CONTEXT.md & ADRs\n(Human + Claude)"]:::interactive
+
+  P1 --> A1
+  A1 --> A2
+  A1 --> A3
+  A2 --> A4
+  A3 --> A4
+
+  %% ── Phase 2: Planning ──
+  P2["📋 PHASE 2 — Planning"]:::phase
+  A4["/to-prd\nSynthesize conversation into PRD\n→ docs/prd/slug.md\n(Human + Claude)"]:::interactive
+  A5["/to-issues\nBreak PRD into vertical slices,\nappend task checklist to PRD\n(Human + Claude)"]:::interactive
+
+  P2 --> A4
+  A4 --> A5
+
+  %% ── Phase 3: Implementation ──
+  P3["⚙️ PHASE 3 — Implementation"]:::phase
+  A5 --> P3
+
+  B1["./ralph.sh\nPick highest-priority unblocked issue,\nimplement with /tdd, commit & push\n(Ralph — autonomous)"]:::ralph
+  B2{"All acceptance\ncriteria met?\nTests pass?"}:::phase
+  B3["Ralph writes progress file\n.ralph/progress/issue-N.md\nLabels issue 'ralph-done'"]:::ralph
+  B4["Run ./ralph.sh again\nfor next issue"]:::ralph
+
+  P3 --> B1
+  B1 --> B2
+  B2 -- "Yes" --> B3
+  B2 -- "No — Ralph retries\nor signals NEED_PERMISSIONS" --> B1
+  B3 --> B4
+  B4 -- "More issues" --> B1
+
+  %% ── Phase 4: Human Review (local) ──
+  P4["🔍 PHASE 4 — Human Review"]:::phase
+  B4 -- "No more issues\nor checkpoint" --> P4
+
+  C1["Human pulls ralph/prd-N branch\nReviews changes locally"]:::human
+  C2["Run tests locally\nnpm test + npx playwright test"]:::human
+  C3["Verify UI in browser\nnpm run dev"]:::human
+  C4{" Changes\nacceptable?"}:::phase
+
+  P4 --> C1
+  C1 --> C2
+  C2 --> C3
+  C3 --> C4
+
+  C5["Request fixes\n(manual or re-run Ralph)"]:::human
+  C4 -- "No" --> C5
+  C5 --> B1
+
+  %% ── Phase 5: PR & Ship ──
+  P5["🚀 PHASE 5 — PR & Ship"]:::phase
+  C4 -- "Yes" --> P5
+
+  D1["/review  or  /code-review\nFinal code review pass\n(Human + Claude)"]:::interactive
+  D2["/security-review\nAudit BFF endpoints & middleware\n(Human + Claude)"]:::interactive
+  D3["/simplify\nClean up code quality & efficiency\n(Human + Claude)"]:::interactive
+  D4["Create PR\ngh pr create or /git-push\n(Human)"]:::human
+  D5["CI runs — Playwright + Lighthouse\n(Automated)"]:::phase
+  D6["Merge to main ✅"]:::human
+
+  P5 --> D1
+  P5 --> D2
+  P5 --> D3
+  D1 --> D4
+  D2 --> D4
+  D3 --> D4
+  D4 --> D5
+  D5 --> D6
+
+  %% ── Ongoing ──
+  P6["🔄 ONGOING — Architecture Health"]:::phase
+  D6 --> P6
+  E1["/improve-codebase-architecture\nPeriodic review, HTML report,\nidentify deepening opportunities\n(Human + Claude)"]:::interactive
+  P6 --> E1
+  E1 -. "New feature idea" .-> A1
+        </pre>
+      </div>
+    </section>
+
+    <!-- ───────── SKILL DETAIL CARDS ───────── -->
+    <section>
+      <h2 class="text-xl font-bold mb-6">Skill Details</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- /grill-me -->
+        <div class="card bg-white rounded-xl border-2 border-both-border p-6 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-bold text-both-dark">/grill-me</h3>
+            <span class="text-xs font-semibold uppercase tracking-wider bg-both-light text-both-dark px-3 py-1 rounded-full">Human + Claude</span>
+          </div>
+          <p class="text-sm text-gray-600 font-medium">Phase 1 — Discovery &amp; Design</p>
+          <p class="text-sm text-gray-700">Interview the human relentlessly about a plan or design, walking each branch of the decision tree. Claude provides recommended answers and checks the codebase when questions can be answered by code.</p>
+          <div class="bg-gray-50 rounded-lg p-3 space-y-1">
+            <p class="text-xs font-semibold text-gray-500 uppercase">When to use</p>
+            <p class="text-sm text-gray-700">You have a rough plan (e.g., "real payment gateway") and want it stress-tested before investing in a PRD.</p>
+          </div>
+          <div class="bg-gray-50 rounded-lg p-3 space-y-1">
+            <p class="text-xs font-semibold text-gray-500 uppercase">Inputs → Outputs</p>
+            <p class="text-sm text-gray-700">Conversation context → Shared understanding, resolved decisions</p>
+          </div>
+        </div>
+
+        <!-- /grill-with-docs -->
+        <div class="card bg-white rounded-xl border-2 border-both-border p-6 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-bold text-both-dark">/grill-with-docs</h3>
+            <span class="text-xs font-semibold uppercase tracking-wider bg-both-light text-both-dark px-3 py-1 rounded-full">Human + Claude</span>
+          </div>
+          <p class="text-sm text-gray-600 font-medium">Phase 1 — Discovery &amp; Design</p>
+          <p class="text-sm text-gray-700">Same grilling interview as <code>/grill-me</code>, but also enforces domain language from <code>CONTEXT.md</code>. Challenges fuzzy terms, cross-references claims against code, and updates glossary entries &amp; ADRs inline as decisions crystallize.</p>
+          <div class="bg-gray-50 rounded-lg p-3 space-y-1">
+            <p class="text-xs font-semibold text-gray-500 uppercase">When to use</p>
+            <p class="text-sm text-gray-700">Designing a new domain concept (e.g., "fare class", "ancillary") where terminology precision matters and documentation should be updated.</p>
+          </div>
+          <div class="bg-gray-50 rounded-lg p-3 space-y-1">
+            <p class="text-xs font-semibold text-gray-500 uppercase">Inputs → Outputs</p>
+            <p class="text-sm text-gray-700">Plan + domain model → Shared understanding + updated CONTEXT.md + ADRs</p>
+          </div>
+        </div>
+
+        <!-- /to-prd -->
+        <div class="card bg-white rounded-xl border-2 border-both-border p-6 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-bold text-both-dark">/to-prd</h3>
+            <span class="text-xs font-semibold uppercase tracking-wider bg-both-light text-both-dark px-3 py-1 rounded-full">Human + Claude</span>
+          </div>
+          <p class="text-sm text-gray-600 font-medium">Phase 2 — Planning</p>
+          <p class="text-sm text-gray-700">Synthesizes the current conversation context and codebase understanding into a formal PRD. Explores the repo, sketches major modules, checks with the user, then writes the PRD using a structured template (problem, solution, user stories, implementation &amp; testing decisions).</p>
+          <div class="bg-gray-50 rounded-lg p-3 space-y-1">
+            <p class="text-xs font-semibold text-gray-500 uppercase">When to use</p>
+            <p class="text-sm text-gray-700">After grilling is complete and the design is solid. Formalizes decisions into a document Ralph can consume.</p>
+          </div>
+          <div class="bg-gray-50 rounded-lg p-3 space-y-1">
+            <p class="text-xs font-semibold text-gray-500 uppercase">Inputs → Outputs</p>
+            <p class="text-sm text-gray-700">Conversation context → <code>docs/prd/&lt;slug&gt;.md</code></p>
+          </div>
+        </div>
+
+        <!-- /to-issues -->
+        <div class="card bg-white rounded-xl border-2 border-both-border p-6 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-bold text-both-dark">/to-issues</h3>
+            <span class="text-xs font-semibold uppercase tracking-wider bg-both-light text-both-dark px-3 py-1 rounded-full">Human + Claude</span>
+          </div>
+          <p class="text-sm text-gray-600 font-medium">Phase 2 — Planning</p>
+          <p class="text-sm text-gray-700">Breaks the PRD into <strong>tracer-bullet vertical slices</strong> — each is a thin end-to-end cut through all layers (schema, API, UI, tests), independently demoable. Each slice is labelled <strong>AFK</strong> (Ralph can do it) or <strong>HITL</strong> (needs human). Dependencies are mapped.</p>
+          <div class="bg-gray-50 rounded-lg p-3 space-y-1">
+            <p class="text-xs font-semibold text-gray-500 uppercase">When to use</p>
+            <p class="text-sm text-gray-700">After the PRD is approved. Creates the task list that Ralph will pick up one-by-one.</p>
+          </div>
+          <div class="bg-gray-50 rounded-lg p-3 space-y-1">
+            <p class="text-xs font-semibold text-gray-500 uppercase">Inputs → Outputs</p>
+            <p class="text-sm text-gray-700">PRD → Task checklist appended to PRD file (per CLAUDE.md — not GitHub Issues)</p>
+          </div>
+        </div>
+
+        <!-- /tdd (used by Ralph) -->
+        <div class="card bg-white rounded-xl border-2 border-ralph-border p-6 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-bold text-ralph-dark">/tdd</h3>
+            <span class="text-xs font-semibold uppercase tracking-wider bg-ralph-light text-ralph-dark px-3 py-1 rounded-full">Ralph (mandatory)</span>
+          </div>
+          <p class="text-sm text-gray-600 font-medium">Phase 3 — Implementation</p>
+          <p class="text-sm text-gray-700">Red-green-refactor loop. Write ONE failing test → minimal code to pass → repeat → refactor. Vertical slices only (never write all tests first). Tests verify behavior through public interfaces, not implementation details. Confirms interface design before coding.</p>
+          <div class="bg-gray-50 rounded-lg p-3 space-y-1">
+            <p class="text-xs font-semibold text-gray-500 uppercase">When to use</p>
+            <p class="text-sm text-gray-700">Every implementation task. CLAUDE.md mandates Ralph uses /tdd for all work. Each issue from /to-issues is implemented this way.</p>
+          </div>
+          <div class="bg-gray-50 rounded-lg p-3 space-y-1">
+            <p class="text-xs font-semibold text-gray-500 uppercase">Inputs → Outputs</p>
+            <p class="text-sm text-gray-700">Issue acceptance criteria → Tested, committed code on <code>ralph/prd-N</code> branch</p>
+          </div>
+        </div>
+
+        <!-- /improve-codebase-architecture -->
+        <div class="card bg-white rounded-xl border-2 border-both-border p-6 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-bold text-both-dark">/improve-codebase-architecture</h3>
+            <span class="text-xs font-semibold uppercase tracking-wider bg-both-light text-both-dark px-3 py-1 rounded-full">Human + Claude</span>
+          </div>
+          <p class="text-sm text-gray-600 font-medium">Ongoing — Architecture Health</p>
+          <p class="text-sm text-gray-700">Explores the codebase for architectural friction — shallow modules, tight coupling, poor testability. Produces a visual HTML report (Tailwind + Mermaid) with before/after diagrams for each candidate. After you pick one, drops into a grilling session to design the deepening.</p>
+          <div class="bg-gray-50 rounded-lg p-3 space-y-1">
+            <p class="text-xs font-semibold text-gray-500 uppercase">When to use</p>
+            <p class="text-sm text-gray-700">Periodic health check after several features land, or when a part of the codebase feels hard to test or navigate. Findings can loop back into a new <code>/to-prd</code>.</p>
+          </div>
+          <div class="bg-gray-50 rounded-lg p-3 space-y-1">
+            <p class="text-xs font-semibold text-gray-500 uppercase">Inputs → Outputs</p>
+            <p class="text-sm text-gray-700">Codebase → HTML report with deepening candidates → design decisions via grilling</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ───────── RALPH DETAIL ───────── -->
+    <section>
+      <h2 class="text-xl font-bold mb-4">Ralph — The Autonomous Agent</h2>
+      <div class="bg-white rounded-xl border-2 border-ralph-border p-8 space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="space-y-2">
+            <p class="text-xs font-semibold text-gray-500 uppercase">Trigger</p>
+            <p class="text-sm"><code class="bg-gray-100 px-2 py-0.5 rounded">./ralph.sh</code></p>
+          </div>
+          <div class="space-y-2">
+            <p class="text-xs font-semibold text-gray-500 uppercase">Branch</p>
+            <p class="text-sm"><code class="bg-gray-100 px-2 py-0.5 rounded">ralph/prd-35</code></p>
+          </div>
+          <div class="space-y-2">
+            <p class="text-xs font-semibold text-gray-500 uppercase">Progress</p>
+            <p class="text-sm"><code class="bg-gray-100 px-2 py-0.5 rounded">.ralph/progress/</code></p>
+          </div>
+        </div>
+
+        <div class="bg-ralph-light rounded-lg p-5">
+          <h4 class="font-semibold text-ralph-dark mb-3">Per-run loop (one issue at a time)</h4>
+          <ol class="text-sm text-gray-700 space-y-2 list-decimal list-inside">
+            <li>Read PRD parent issue #35 and all child issues on GitHub</li>
+            <li>Pick highest-priority open child with no open blockers (not labelled <code>in-progress</code> or <code>ralph-done</code>)</li>
+            <li>Checkout <code>ralph/prd-35</code> branch</li>
+            <li>Implement using <code>/tdd</code> — every acceptance criterion met, all tests pass</li>
+            <li>Reference Figma design system for any UI work (via MCP)</li>
+            <li>Update <code>CLAUDE.md</code> if architectural decisions were made</li>
+            <li>Write progress file to <code>.ralph/progress/issue-N.md</code></li>
+            <li>Label issue <code>ralph-done</code> on GitHub, post summary comment</li>
+            <li>Commit &amp; push to <code>ralph/prd-35</code> — <strong>NO PR created</strong></li>
+            <li>Emit signal: <code>DONE</code>, <code>COMPLETE</code>, or <code>NEED_PERMISSIONS</code></li>
+          </ol>
+        </div>
+
+        <p class="text-sm text-gray-600">Run <code>./ralph.sh</code> repeatedly — each invocation implements exactly one issue. When all issues are done, Ralph emits <code>COMPLETE</code> and stops.</p>
+      </div>
+    </section>
+
+    <!-- ───────── RESPONSIBILITY MATRIX ───────── -->
+    <section>
+      <h2 class="text-xl font-bold mb-4">Responsibility Matrix — Who Does What</h2>
+      <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+              <th class="text-left px-6 py-3 font-semibold text-gray-600">Activity</th>
+              <th class="text-center px-4 py-3 font-semibold text-human-dark">Human</th>
+              <th class="text-center px-4 py-3 font-semibold text-ralph-dark">Ralph</th>
+              <th class="text-center px-4 py-3 font-semibold text-both-dark">Claude (interactive)</th>
+              <th class="text-left px-6 py-3 font-semibold text-gray-600">Skill / Tool</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            <tr>
+              <td class="px-6 py-3">Identify feature / problem</td>
+              <td class="text-center px-4 py-3">✅</td>
+              <td class="text-center px-4 py-3">—</td>
+              <td class="text-center px-4 py-3">—</td>
+              <td class="px-6 py-3 text-gray-500">—</td>
+            </tr>
+            <tr class="bg-gray-50/50">
+              <td class="px-6 py-3">Stress-test plan</td>
+              <td class="text-center px-4 py-3">✅</td>
+              <td class="text-center px-4 py-3">—</td>
+              <td class="text-center px-4 py-3">✅</td>
+              <td class="px-6 py-3"><code>/grill-me</code> or <code>/grill-with-docs</code></td>
+            </tr>
+            <tr>
+              <td class="px-6 py-3">Write PRD</td>
+              <td class="text-center px-4 py-3">✅ approve</td>
+              <td class="text-center px-4 py-3">—</td>
+              <td class="text-center px-4 py-3">✅ draft</td>
+              <td class="px-6 py-3"><code>/to-prd</code></td>
+            </tr>
+            <tr class="bg-gray-50/50">
+              <td class="px-6 py-3">Break into issues</td>
+              <td class="text-center px-4 py-3">✅ approve</td>
+              <td class="text-center px-4 py-3">—</td>
+              <td class="text-center px-4 py-3">✅ draft</td>
+              <td class="px-6 py-3"><code>/to-issues</code></td>
+            </tr>
+            <tr>
+              <td class="px-6 py-3">Implement issues (AFK slices)</td>
+              <td class="text-center px-4 py-3">—</td>
+              <td class="text-center px-4 py-3">✅</td>
+              <td class="text-center px-4 py-3">—</td>
+              <td class="px-6 py-3"><code>./ralph.sh</code> + <code>/tdd</code></td>
+            </tr>
+            <tr class="bg-gray-50/50">
+              <td class="px-6 py-3">Implement issues (HITL slices)</td>
+              <td class="text-center px-4 py-3">✅</td>
+              <td class="text-center px-4 py-3">—</td>
+              <td class="text-center px-4 py-3">✅</td>
+              <td class="px-6 py-3"><code>/tdd</code> (interactive)</td>
+            </tr>
+            <tr>
+              <td class="px-6 py-3">Pull &amp; review locally</td>
+              <td class="text-center px-4 py-3">✅</td>
+              <td class="text-center px-4 py-3">—</td>
+              <td class="text-center px-4 py-3">—</td>
+              <td class="px-6 py-3"><code>git pull</code>, <code>npm test</code>, <code>npm run dev</code></td>
+            </tr>
+            <tr class="bg-gray-50/50">
+              <td class="px-6 py-3">Code review</td>
+              <td class="text-center px-4 py-3">✅</td>
+              <td class="text-center px-4 py-3">—</td>
+              <td class="text-center px-4 py-3">✅</td>
+              <td class="px-6 py-3"><code>/review</code> or <code>/code-review</code></td>
+            </tr>
+            <tr>
+              <td class="px-6 py-3">Security audit</td>
+              <td class="text-center px-4 py-3">✅</td>
+              <td class="text-center px-4 py-3">—</td>
+              <td class="text-center px-4 py-3">✅</td>
+              <td class="px-6 py-3"><code>/security-review</code></td>
+            </tr>
+            <tr class="bg-gray-50/50">
+              <td class="px-6 py-3">Code cleanup</td>
+              <td class="text-center px-4 py-3">✅</td>
+              <td class="text-center px-4 py-3">—</td>
+              <td class="text-center px-4 py-3">✅</td>
+              <td class="px-6 py-3"><code>/simplify</code></td>
+            </tr>
+            <tr>
+              <td class="px-6 py-3">Create PR &amp; ship</td>
+              <td class="text-center px-4 py-3">✅</td>
+              <td class="text-center px-4 py-3">—</td>
+              <td class="text-center px-4 py-3">—</td>
+              <td class="px-6 py-3"><code>gh pr create</code> / <code>/git-push</code></td>
+            </tr>
+            <tr class="bg-gray-50/50">
+              <td class="px-6 py-3">Architecture health check</td>
+              <td class="text-center px-4 py-3">✅</td>
+              <td class="text-center px-4 py-3">—</td>
+              <td class="text-center px-4 py-3">✅</td>
+              <td class="px-6 py-3"><code>/improve-codebase-architecture</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ───────── SWIMLANE DIAGRAM ───────── -->
+    <section>
+      <h2 class="text-xl font-bold mb-4">Swimlane — Handoffs Between Human &amp; Ralph</h2>
+      <div class="bg-white rounded-xl border border-gray-200 p-8 overflow-x-auto">
+        <pre class="mermaid">
+sequenceDiagram
+  participant H as 🧑 Human
+  participant C as 💬 Claude (interactive)
+  participant R as 🤖 Ralph (autonomous)
+  participant GH as 🐙 GitHub / CI
+
+  Note over H,C: Phase 1 — Discovery & Design
+  H->>C: /grill-me or /grill-with-docs
+  C->>H: Probing questions, one at a time
+  H->>C: Answers + decisions
+  C->>H: Shared understanding reached
+
+  Note over H,C: Phase 2 — Planning
+  H->>C: /to-prd
+  C->>H: Draft PRD (docs/prd/slug.md)
+  H->>C: Approve or iterate
+  H->>C: /to-issues
+  C->>H: Vertical slices (AFK / HITL labelled)
+  H->>C: Approve breakdown
+  C->>GH: Publish issues to GitHub
+
+  Note over H,R: Phase 3 — Ralph Implements (AFK slices)
+  H->>R: ./ralph.sh
+  R->>R: Pick issue, /tdd, implement, test
+  R->>GH: Commit & push to ralph/prd-35
+  R->>GH: Label issue 'ralph-done'
+  R->>H: Signal: DONE / COMPLETE / NEED_PERMISSIONS
+  H->>R: ./ralph.sh (repeat for next issue)
+
+  Note over H,C: Phase 4 — Human Review (local)
+  H->>H: git pull ralph/prd-35
+  H->>H: npm test + npm run dev
+  H->>H: Verify UI in browser
+
+  alt Changes need fixes
+    H->>R: ./ralph.sh or manual fix
+  end
+
+  Note over H,C: Phase 5 — PR & Ship
+  H->>C: /review or /code-review
+  C->>H: Review feedback
+  H->>C: /security-review
+  C->>H: Security audit results
+  H->>C: /simplify
+  C->>H: Cleanup suggestions applied
+  H->>GH: gh pr create
+  GH->>GH: CI: Playwright + Lighthouse
+  H->>GH: Merge to main ✅
+
+  Note over H,C: Ongoing
+  H->>C: /improve-codebase-architecture
+  C->>H: HTML report with candidates
+  H->>C: Pick candidate → grilling session
+        </pre>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="text-center text-xs text-gray-400 py-6 border-t border-gray-200">
+      JSX Airline UI — Skills &amp; Ralph Workflow Diagram — Generated 2026-05-26
+    </footer>
+
+  </main>
+
+  <script>mermaid.initialize({ startOnLoad: true, securityLevel: 'loose' });</script>
+</body>
+</html>
