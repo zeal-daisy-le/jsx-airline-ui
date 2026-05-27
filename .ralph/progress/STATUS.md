@@ -11,3 +11,7 @@
 | #21 | Booking confirmation step | done | 2026-05-26 | [details](issue-21.md) |
 | #24 | Playwright E2E + axe-core CI | done | 2026-05-26 | [details](issue-24.md) |
 | #25 | Lighthouse CI + performance budget | done | 2026-05-26 | [details](issue-25.md) |
+| PRD-video-T1 | Video asset compression | done | 2026-05-27 | [details](prd-homepage-video-task-1.md) |
+| PRD-video-T2 | Scroll-reveal Experience section | done | 2026-05-27 | [details](prd-homepage-video-task-2.md) |
+| PRD-video-T3 | Scroll-reveal Where We Fly + hover | done | 2026-05-27 | [details](prd-homepage-video-task-3.md) |
+| PRD-video-T4 | Hero background video | done | 2026-05-27 | [details](prd-homepage-video-task-4.md) |
