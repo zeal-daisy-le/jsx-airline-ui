@@ -1,11 +1,11 @@
 "use client"
 
 import { useRef } from "react"
-import Image from "next/image"
 import Link from "next/link"
 import { Search } from "lucide-react"
 import { motion, useReducedMotion, AnimatePresence } from "framer-motion"
 import { useEffect, useState } from "react"
+import { HeroVideo } from "./HeroVideo"
 
 const ADJECTIVES = ["EFFICIENT", "EFFORTLESS", "ELEVATED"]
 
@@ -29,13 +29,11 @@ export function HeroSection() {
       className="relative flex min-h-[640px] flex-col justify-end overflow-hidden"
       aria-labelledby="hero-heading"
     >
-      <Image
-        src="/images/hero.jpg"
-        alt="JSX semi-private jet on the tarmac at golden hour"
-        fill
-        priority
-        sizes="100vw"
-        className="object-cover object-center"
+      <HeroVideo
+        posterSrc="/images/hero-poster.jpg"
+        posterAlt="JSX semi-private jet on the tarmac at golden hour"
+        videoWebm="/videos/hero.webm"
+        videoMp4="/videos/hero.mp4"
       />
       {/* gradient: transparent top → dark bottom */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/80" />

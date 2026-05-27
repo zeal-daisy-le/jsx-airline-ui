@@ -17,6 +17,18 @@ vi.mock("framer-motion", () => ({
     }: React.HTMLAttributes<HTMLElement> & Record<string, unknown>) => (
       <article {...props}>{children}</article>
     ),
+    div: ({
+      children,
+      whileHover,
+      whileTap,
+      initial,
+      animate,
+      variants,
+      transition,
+      ...props
+    }: React.HTMLAttributes<HTMLElement> & Record<string, unknown>) => (
+      <div {...props}>{children}</div>
+    ),
   },
   useReducedMotion: vi.fn(() => false),
 }))

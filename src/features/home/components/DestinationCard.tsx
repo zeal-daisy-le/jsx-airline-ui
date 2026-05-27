@@ -28,19 +28,32 @@ export function DestinationCard({ destination, priority = false }: DestinationCa
       whileTap={shouldReduceMotion ? undefined : "tap"}
       transition={{ duration: 0.2, ease: "easeOut" }}
     >
-      <Image
-        src={destination.imageUrl}
-        alt={destination.imageAlt}
-        width={800}
-        height={533}
-        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-        priority={priority}
-        className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105"
-      />
-      {/* Dark gradient overlay — decorative */}
-      <div
+      <motion.div
+        className="relative w-full"
+        variants={{
+          rest: { scale: 1 },
+          hover: { scale: 1.05 },
+        }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+      >
+        <Image
+          src={destination.imageUrl}
+          alt={destination.imageAlt}
+          width={800}
+          height={533}
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          priority={priority}
+          className="w-full h-auto object-cover"
+        />
+      </motion.div>
+      <motion.div
         className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent pointer-events-none"
         aria-hidden="true"
+        variants={{
+          rest: { opacity: 1 },
+          hover: { opacity: 1.5 },
+        }}
+        transition={{ duration: 0.3 }}
       />
       <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5">
         <p className="text-xs font-semibold uppercase tracking-widest text-jsx-red">

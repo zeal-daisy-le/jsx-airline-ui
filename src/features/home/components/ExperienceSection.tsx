@@ -1,27 +1,44 @@
-import Image from "next/image"
-import { Pause } from "lucide-react"
+"use client"
+
+import { ScrollReveal } from "@/components/ScrollReveal"
+import { ExperienceVideoCard } from "./ExperienceVideoCard"
 
 const cards = [
   {
-    id: "airport-stress",
-    image: "/images/experience/airport.jpg",
+    id: "skip-airport-stress",
     title: "Skip the airport stress.",
     subtitle: "No TSA, no lines, no terminals",
-    alt: "Traveller walking with a dog across the tarmac to a JSX jet",
+    posterSrc: "/images/experience/skip-airport-stress-poster.jpg",
+    videoWebm: "/videos/experience/skip-airport-stress.webm",
+    videoMp4: "/videos/experience/skip-airport-stress.mp4",
+    alt: "Woman walking with golden retriever past JSX jet on the tarmac",
   },
   {
-    id: "private-terminal",
-    image: "/images/experience/terminal.jpg",
-    title: "Board in minutes.",
-    subtitle: "Private lounges and direct boarding",
-    alt: "JSX private terminal lounge",
+    id: "bring-the-whole-party",
+    title: "Bring the whole party.",
+    subtitle: "Group-friendly seating, pets included",
+    posterSrc: "/images/experience/bring-the-whole-party-poster.jpg",
+    videoWebm: "/videos/experience/bring-the-whole-party.webm",
+    videoMp4: "/videos/experience/bring-the-whole-party.mp4",
+    alt: "Family with kids and dog boarding a JSX jet at golden hour",
   },
   {
-    id: "pet-friendly",
-    image: "/images/experience/pets.jpg",
-    title: "Pets fly with you.",
-    subtitle: "Dogs and cats welcome on board",
-    alt: "Dog relaxing on a JSX flight",
+    id: "vacation-starts-on-tarmac",
+    title: "Vacation starts on the tarmac.",
+    subtitle: "Walk on, drink in hand",
+    posterSrc: "/images/experience/vacation-starts-on-tarmac-poster.jpg",
+    videoWebm: "/videos/experience/vacation-starts-on-tarmac.webm",
+    videoMp4: "/videos/experience/vacation-starts-on-tarmac.mp4",
+    alt: "Aerial view of JSX jet flying over the ocean",
+  },
+  {
+    id: "get-there-faster",
+    title: "Get there faster.",
+    subtitle: "Quickly deplane, straight to your ride",
+    posterSrc: "/images/experience/get-there-faster-poster.jpg",
+    videoWebm: "/videos/experience/get-there-faster.webm",
+    videoMp4: "/videos/experience/get-there-faster.mp4",
+    alt: "Family with dog disembarking from JSX jet",
   },
 ]
 
@@ -36,40 +53,30 @@ export function ExperienceSection() {
       </div>
 
       <div
-        className="mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto px-6 pb-2"
+        className="mt-6 flex snap-x snap-mandatory gap-2.5 overflow-x-auto scroll-pl-6 pb-2"
         style={{ scrollbarWidth: "none" }}
         role="list"
         aria-label="JSX experience highlights"
         tabIndex={0}
       >
-        {cards.map((card) => (
-          <article
+        <div className="shrink-0 w-3.5" aria-hidden="true" />
+        {cards.map((card, index) => (
+          <ScrollReveal
             key={card.id}
-            className="w-[calc(100vw-48px)] shrink-0 snap-start"
-            role="listitem"
+            delay={index * 0.15}
+            className="shrink-0 snap-start"
           >
-            <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-gray-100">
-              <Image
-                src={card.image}
-                alt={card.alt}
-                fill
-                sizes="calc(100vw - 48px)"
-                className="object-cover"
-              />
-              <button
-                className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/30 backdrop-blur-sm"
-                aria-label="Pause"
-                tabIndex={-1}
-              >
-                <Pause className="h-4 w-4 text-white" />
-              </button>
-            </div>
-            <div className="mt-3">
-              <p className="text-base font-semibold text-black">{card.title}</p>
-              <p className="mt-0.5 text-sm text-gray-500">{card.subtitle}</p>
-            </div>
-          </article>
+            <ExperienceVideoCard
+              title={card.title}
+              subtitle={card.subtitle}
+              posterSrc={card.posterSrc}
+              videoWebm={card.videoWebm}
+              videoMp4={card.videoMp4}
+              alt={card.alt}
+            />
+          </ScrollReveal>
         ))}
+        <div className="shrink-0 w-3.5" aria-hidden="true" />
       </div>
     </section>
   )
