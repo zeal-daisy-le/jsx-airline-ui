@@ -44,27 +44,26 @@ const cards = [
 
 export function ExperienceSection() {
   return (
-    <section className="py-12" aria-labelledby="experience-heading">
+    <section className="py-12 md:py-16 lg:py-20" aria-labelledby="experience-heading">
       <div className="px-6">
-        <h2 id="experience-heading" className="text-[32px] font-semibold leading-tight text-black">
+        <h2 id="experience-heading" className="text-[32px] font-semibold leading-tight text-black md:text-4xl lg:text-5xl">
           The JSX Experience
         </h2>
-        <p className="mt-2 text-base text-gray-500">Start your trip sooner.</p>
+        <p className="mt-2 text-base text-gray-500 md:text-lg">Start your trip sooner.</p>
       </div>
 
       <div
-        className="mt-6 flex snap-x snap-mandatory gap-2.5 overflow-x-auto scroll-pl-6 pb-2"
-        style={{ scrollbarWidth: "none" }}
+        className="mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4 pl-6 pr-6 lg:grid lg:grid-cols-4 lg:overflow-x-visible"
+        style={{ scrollbarWidth: "none", WebkitOverflowScrolling: "touch" }}
         role="list"
         aria-label="JSX experience highlights"
         tabIndex={0}
       >
-        <div className="shrink-0 w-3.5" aria-hidden="true" />
         {cards.map((card, index) => (
           <ScrollReveal
             key={card.id}
             delay={index * 0.15}
-            className="shrink-0 snap-start"
+            className="w-[82vw] max-w-[360px] shrink-0 snap-center sm:w-[60vw] lg:w-auto lg:max-w-none"
           >
             <ExperienceVideoCard
               title={card.title}
@@ -76,7 +75,6 @@ export function ExperienceSection() {
             />
           </ScrollReveal>
         ))}
-        <div className="shrink-0 w-3.5" aria-hidden="true" />
       </div>
     </section>
   )

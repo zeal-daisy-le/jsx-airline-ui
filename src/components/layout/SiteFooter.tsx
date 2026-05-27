@@ -56,26 +56,29 @@ function FooterSection({
 export function SiteFooter() {
   return (
     <footer className="bg-[#2B2B2B] px-6 pt-12 pb-8" aria-label="Site footer">
-      <FooterSection heading="Fly JSX" links={flyJsx} />
-      <FooterSection heading="Support" links={support} />
-      <FooterSection heading="Company" links={company} />
+      <div>
+        <div className="md:grid md:grid-cols-3 md:gap-8 lg:grid-cols-4">
+          <FooterSection heading="Fly JSX" links={flyJsx} />
+          <FooterSection heading="Support" links={support} />
+          <FooterSection heading="Company" links={company} />
+          <FooterSection heading="Legal" links={legal} />
+        </div>
 
-      <div className="mb-8 flex items-center gap-4">
-        <a href="https://instagram.com/jsx" aria-label="JSX on Instagram" className="text-white/70 hover:text-white">
-          <Instagram className="h-7 w-7" />
-        </a>
-        <a href="https://facebook.com/jsx" aria-label="JSX on Facebook" className="text-white/70 hover:text-white">
-          <Facebook className="h-7 w-7" />
-        </a>
-        <a href="https://youtube.com/jsx" aria-label="JSX on YouTube" className="text-white/70 hover:text-white">
-          <Youtube className="h-7 w-7" />
-        </a>
-        <a href="https://linkedin.com/company/jsx" aria-label="JSX on LinkedIn" className="text-white/70 hover:text-white">
-          <Linkedin className="h-7 w-7" />
-        </a>
+        <div className="mb-8 flex items-center gap-4 md:mb-10">
+          <a href="https://instagram.com/jsx" aria-label="JSX on Instagram" className="text-white/70 hover:text-white">
+            <Instagram className="h-7 w-7" />
+          </a>
+          <a href="https://facebook.com/jsx" aria-label="JSX on Facebook" className="text-white/70 hover:text-white">
+            <Facebook className="h-7 w-7" />
+          </a>
+          <a href="https://youtube.com/jsx" aria-label="JSX on YouTube" className="text-white/70 hover:text-white">
+            <Youtube className="h-7 w-7" />
+          </a>
+          <a href="https://linkedin.com/company/jsx" aria-label="JSX on LinkedIn" className="text-white/70 hover:text-white">
+            <Linkedin className="h-7 w-7" />
+          </a>
+        </div>
       </div>
-
-      <FooterSection heading="Legal" links={legal} />
     </footer>
   )
 }

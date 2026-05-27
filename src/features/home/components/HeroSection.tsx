@@ -26,7 +26,7 @@ export function HeroSection() {
 
   return (
     <section
-      className="relative flex min-h-[640px] flex-col justify-end overflow-hidden"
+      className="relative flex min-h-[100svh] flex-col items-center justify-end overflow-hidden"
       aria-labelledby="hero-heading"
     >
       <HeroVideo
@@ -38,12 +38,12 @@ export function HeroSection() {
       {/* gradient: transparent top → dark bottom */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/80" />
 
-      <div className="relative z-10 px-6 pb-10">
-        <p className="mb-1 text-sm text-white/90">Semi-private flights that are</p>
+      <div className="relative z-10 flex flex-col items-center px-6 pb-12 text-center md:pb-16">
+        <p className="mb-1 text-sm text-white/90 md:text-base">Semi-private flights that are</p>
 
         <h1
           id="hero-heading"
-          className="mb-6 overflow-hidden text-[3.5rem] font-bold leading-none tracking-tight text-white"
+          className="mb-6 overflow-hidden text-[3.5rem] font-bold leading-none tracking-tight text-white md:text-7xl lg:text-8xl"
           aria-live="polite"
           aria-atomic="true"
         >
@@ -63,7 +63,7 @@ export function HeroSection() {
 
         <Link
           href="/booking/search"
-          className="flex w-full items-center gap-3 rounded-full bg-white/20 px-5 py-4 backdrop-blur-sm transition-colors hover:bg-white/30"
+          className="flex w-full max-w-md items-center gap-3 rounded-full bg-white/20 px-5 py-4 backdrop-blur-sm transition-colors hover:bg-white/30"
           aria-label="Search flights"
         >
           <Search className="h-4 w-4 shrink-0 text-white" />
