@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll } from "vitest"
-import { signJWT, verifyJWT } from "@/lib/auth/jwt"
+import { signJWT, verifyJWT } from "@/features/auth/utils/jwt"
 
 beforeAll(() => {
   process.env.JWT_SECRET = "test-secret-for-vitest-at-least-32-chars"

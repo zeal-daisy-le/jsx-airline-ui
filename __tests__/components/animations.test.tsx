@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react"
 import { describe, it, expect, vi, beforeEach } from "vitest"
-import { DestinationCard } from "@/components/destinations/DestinationCard"
+import { DestinationCard } from "@/features/home/components/DestinationCard"
 import HomePage from "@/pages/index"
 import { destinations } from "@/data/destinations"
 import type { Destination } from "@/data/destinations"

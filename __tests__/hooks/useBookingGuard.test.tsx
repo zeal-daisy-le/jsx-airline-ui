@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 import { renderHook, act } from "@testing-library/react"
-import { useBookingGuard } from "@/hooks/useBookingGuard"
-import { useBookingStore } from "@/stores/bookingStore"
-import { BOOKING_STEPS } from "@/lib/booking/steps"
+import { useBookingGuard } from "@/features/booking/hooks/useBookingGuard"
+import { useBookingStore } from "@/features/booking/stores/bookingStore"
+import { BOOKING_STEPS } from "@/features/booking/utils/steps"
 
 const mockReplace = vi.fn()
 

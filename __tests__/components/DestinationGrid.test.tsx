@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react"
 import { describe, it, expect, vi } from "vitest"
-import { DestinationGrid } from "@/components/destinations/DestinationGrid"
+import { DestinationGrid } from "@/features/home/components/DestinationGrid"
 import type { Destination } from "@/data/destinations"
 
 vi.mock("next/image", () => ({

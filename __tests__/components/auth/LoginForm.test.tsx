@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react"
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
-import { LoginForm } from "@/components/auth/LoginForm"
-import { useAuthStore } from "@/stores/authStore"
+import { LoginForm } from "@/features/auth/components/LoginForm"
+import { useAuthStore } from "@/features/auth/stores/authStore"
 import { act } from "@testing-library/react"
 
 vi.mock("next/router", () => ({

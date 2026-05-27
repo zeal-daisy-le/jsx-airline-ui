@@ -1,6 +1,46 @@
 # CLAUDE.md — JSX Airline UI
 
+## Planning & Documentation
+- PRDs and planning documents go in `docs/prd/` as markdown files — NOT GitHub Issues.
+- `/to-prd` output should be written to `docs/prd/<slug>.md`, not published to the issue tracker.
+- `/to-issues` output should be appended as a task checklist within the relevant PRD file.
+
+## Implementation
+- Ralph MUST use `/tdd` (red-green-refactor) for every implementation task. Write a failing test first, make it pass, then clean up.
+
 ## Architecture
+
+### Project Structure — Bulletproof React
+Follow the [bulletproof-react](https://github.com/alan2207/bulletproof-react/blob/master/docs/project-structure.md) feature-based architecture:
+
+```
+src/
+├── app/          # App layer: routes, providers, router
+├── assets/       # Static files (images, fonts)
+├── components/   # Shared components used across features
+├── config/       # Global config, env variables
+├── features/     # Feature modules (primary organization unit)
+│   └── <feature>/
+│       ├── api/        # Feature API requests and hooks
+│       ├── components/ # Feature-scoped components
+│       ├── hooks/      # Feature-scoped hooks
+│       ├── stores/     # Feature state management
+│       ├── types/      # Feature TypeScript types
+│       └── utils/      # Feature utility functions
+├── hooks/        # Shared custom hooks
+├── lib/          # Preconfigured reusable libraries
+├── stores/       # Global state management
+├── testing/      # Test utilities and mocks
+├── types/        # Shared TypeScript types
+└── utils/        # Shared utility functions
+```
+
+Key rules:
+- **Feature-first**: Organize code by feature, not by type. Each feature is self-contained.
+- **No cross-feature imports**: Features must not import from other features. Compose at the app level.
+- **Unidirectional flow**: shared → features → app. Never import backwards.
+- **Direct imports**: Import files directly, no barrel files (preserves tree-shaking).
+- **Only include what's needed**: A feature folder only has the subfolders it actually uses.
 
 ### Tech Stack
 - **Framework**: Next.js 14 Pages Router (TypeScript)
@@ -10,7 +50,7 @@
 - **Forms**: React Hook Form + Zod
 - **BFF**: Next.js API Routes (proxy to Navitaire, never expose credentials)
 - **Auth**: Guest checkout allowed; optional JWT via httpOnly cookie
-- **Testing**: Vitest + Testing Library + MSW (planned)
+- **Testing**: Vitest + Testing Library + MSW (unit) / Playwright + axe-core (E2E)
 
 ### Key Design Decisions
 
@@ -64,6 +104,7 @@
 - Taxes are estimated at 12% of (base fare + bags + seat fees) and rounded to the nearest dollar.
 - On "Confirm & pay": `POST /api/booking/confirm-price` is called with `withRetry`. The BFF re-confirms price with Navitaire (pending #5). If `confirmed: false` is returned, a price-change banner replaces the CTA button — user must accept or cancel. `markStepValid("review")` is called only after a confirmed or accepted-price-change response, not on page load.
 - `contactDetails` is NOT in the bookingStore `partialize` list and does not persist to sessionStorage — it is available within the session only.
+- `confirmedTotalPrice: number | null` is set by the review page when `confirm-price` returns `confirmed: true` (or when the user accepts a price change). It is read by the confirmation page to display "Total paid". It is persisted to sessionStorage.
 
 ### Completed Issues (ralph/prd-35 branch)
 - **#19**: Booking review step — read-only order summary (flight, passengers, bags, seats, price breakdown), BFF `POST /api/booking/confirm-price`, price-change dialog (user must accept updated price before proceeding), GA4 events, error recovery (showToast + retry on bag load; withRetry + onAllRetriesExhausted on confirm-price)
@@ -75,5 +116,32 @@
 - Results are posted/updated as a PR comment (markdown table with per-metric pass/fail icons) regardless of pass or fail. If no Vercel preview is found, a skip notice is posted instead.
 - `LHCI_GITHUB_APP_TOKEN` (optional) enables the Lighthouse CI GitHub App for richer status annotations; the workflow works without it.
 
+#### Booking Confirmation — Snapshot + Store Clear Pattern
+- The confirmation page does NOT use `useBookingGuard`. Instead it waits for `hasHydrated`, reads `bookingReference` from the raw store state, and redirects to `/booking/flights` if it is null.
+- On mount: all booking data is snapshotted into local React state, `trackEvent("booking_completed")` is fired, `POST /api/booking/send-confirmation` is called (fire-and-forget — page displays regardless of email delivery), then `resetBooking()` clears the Zustand store + sessionStorage.
+- The page renders exclusively from the local snapshot after clearing — it does NOT subscribe to store fields after mount, so store clearing does not blank the display.
+- Guest users see a non-blocking account creation prompt (dismissible). Logged-in users see an association notice. Auth status is determined via `GET /api/auth/me` on mount.
+- The confirmation page is print-friendly: SiteHeader is wrapped in `print:hidden`, action buttons are `print:hidden`.
+
 ### Completed Issues (ralph/prd-35 branch)
 - **#25**: Lighthouse CI — `.lighthouserc.js` (mobile budget: perf ≥ 90, LCP ≤ 2.5 s, CLS ≤ 0.1, 3 runs, homepage + `/booking/flights`), `.github/workflows/lighthouse.yml` (Vercel preview URL detection via GitHub Deployments API, `@lhci/cli` autorun, PR comment with score breakdown, blocking status check on budget violations)
+
+### Completed Issues (ralph/prd-35 branch)
+- **#21**: Booking confirmation step — full confirmation screen (PNR, passenger names, flight, seats, total paid), store snapshot + clear pattern, `POST /api/booking/send-confirmation` BFF stub, guest account creation prompt (dismissible), logged-in account association notice, GA4 `booking_completed` event, print-friendly layout, WCAG 2.1 AA
+
+#### Playwright E2E + axe-core
+- Config in `playwright.config.ts` at repo root. `NAVITAIRE_API_URL` is intentionally unset so all BFF routes return deterministic mock data in both local and CI runs.
+- Tests live in `e2e/`. Shared seeder helper `e2e/helpers/booking.ts` writes a Zustand persist payload into `sessionStorage` (key `jsx-booking`) so individual specs can start at any booking step without re-running earlier steps via the UI.
+- `playwright.config.ts` `webServer` runs `next dev` locally (reusing existing server) and `next start` in CI (after the build job produces the `.next/` artifact).
+- `e2e/*.spec.ts` files are excluded from Vitest via `vitest.config.ts`'s `exclude` list — they must NOT import from `vitest`, only `@playwright/test`.
+- axe-core runs via `@axe-core/playwright` (`new AxeBuilder({ page }).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze()`). Any violation fails the test.
+- Session recovery tests (`e2e/session-recovery.spec.ts`) are skipped with `test.skip(true, '...')` pending issue #13.
+- `.github/workflows/playwright.yml` builds then runs E2E tests, uploads HTML report as an artifact on every run, uploads video/trace on failure. Depends on no other CI job (parallel to Lighthouse).
+
+#### Payment Page Stub — `POST /api/booking/pay`
+- `pages/api/booking/pay.ts` stubs the payment finalisation call. Accepts `{ flightId, confirmedTotalPrice, totalPassengers }`, returns `{ success, bookingReference, paymentToken }` with a mock PNR.
+- `pages/booking/payment.tsx` renders a "Pay now" button (`data-testid="pay-button"`) that calls this endpoint, then calls `setPaymentToken` + `setBookingReference` and navigates to confirmation. This enables the Playwright E2E critical-path test to flow through the full booking funnel.
+- The real payment gateway integration (hosted fields, tokenisation) is reserved for issue #20.
+
+### Completed Issues (ralph/prd-35 branch)
+- **#24**: Playwright E2E critical path + axe-core accessibility CI — `playwright.config.ts`, `@axe-core/playwright` integration, `e2e/booking-flow.spec.ts` (full guest booking critical path), `e2e/back-navigation.spec.ts` (data retention on back nav), `e2e/api-failure.spec.ts` (BFF failure recovery via `page.route()`), `e2e/accessibility.spec.ts` (axe-core WCAG 2.1 AA on homepage + all booking steps), `e2e/auth-prefill.spec.ts` (pre-fill for logged-in users, no-overwrite, guest empty form), `e2e/session-recovery.spec.ts` (3 tests skipped pending #13), `.github/workflows/playwright.yml` (build + Playwright + axe CI job with HTML report artifact), `POST /api/booking/pay` BFF stub + payment page "Pay now" button enabling end-to-end flow

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest"
 import handler from "@/pages/api/auth/logout"
-import { AUTH_COOKIE_NAME } from "@/lib/auth/cookie"
+import { AUTH_COOKIE_NAME } from "@/features/auth/utils/cookie"
 import type { NextApiRequest, NextApiResponse } from "next"
 
 function mockReq(overrides: Partial<NextApiRequest> = {}): NextApiRequest {

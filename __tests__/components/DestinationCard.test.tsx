@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react"
 import { describe, it, expect, vi } from "vitest"
-import { DestinationCard } from "@/components/destinations/DestinationCard"
+import { DestinationCard } from "@/features/home/components/DestinationCard"
 import type { Destination } from "@/data/destinations"
 
 vi.mock("framer-motion", () => ({

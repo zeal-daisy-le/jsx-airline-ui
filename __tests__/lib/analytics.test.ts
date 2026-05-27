@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
-import { pageview, trackEvent, bookingEvents } from "@/lib/analytics"
+import { pageview, trackEvent, bookingEvents } from "@/features/booking/utils/analytics"
 
 describe("analytics", () => {
   let mockGtag: ReturnType<typeof vi.fn>
