@@ -22,7 +22,7 @@ export function SupportContact() {
         >
           Call 1-800-JSX-HELP
         </a>
-        <span className="hidden text-amber-600 sm:inline" aria-hidden="true">
+        <span className="hidden text-amber-800 sm:inline" aria-hidden="true">
           ·
         </span>
         <a

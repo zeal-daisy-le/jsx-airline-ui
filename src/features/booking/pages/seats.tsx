@@ -121,7 +121,7 @@ function SeatMapGrid({
           <Fragment key={row}>
             {/* Class section dividers */}
             {row === 1 && (
-              <div className="flex items-center gap-2 my-2 text-xs text-amber-600" aria-hidden="true">
+              <div className="flex items-center gap-2 my-2 text-xs text-amber-800" aria-hidden="true">
                 <div className="flex-1 border-t border-dashed border-amber-300" />
                 <span>First Class — $45</span>
                 <div className="flex-1 border-t border-dashed border-amber-300" />
