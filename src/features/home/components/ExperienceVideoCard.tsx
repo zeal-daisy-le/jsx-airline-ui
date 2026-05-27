@@ -39,13 +39,16 @@ export function ExperienceVideoCard({
   }
 
   return (
-    <article role="listitem" className="relative h-[480px] w-[343px] drop-shadow-lg">
-      <div className="absolute inset-x-0 top-0 h-[440px] overflow-hidden rounded-[20px]">
+    <article
+      role="listitem"
+      className="flex flex-col overflow-hidden rounded-[20px] bg-white shadow-[0_4px_18px_rgba(0,0,0,0.06)]"
+    >
+      <div className="relative aspect-[5/6] w-full overflow-hidden">
         <Image
           src={posterSrc}
           alt={alt}
           fill
-          sizes="343px"
+          sizes="(max-width: 640px) 82vw, (max-width: 900px) 60vw, 25vw"
           className="object-cover"
         />
         {!shouldReduceMotion && (
@@ -66,7 +69,7 @@ export function ExperienceVideoCard({
         {!shouldReduceMotion && (
           <button
             onClick={togglePlayback}
-            className="absolute right-[17px] top-[18px] flex h-[35px] w-[35px] items-center justify-center rounded-full bg-black/30 backdrop-blur-sm transition-colors hover:bg-black/40"
+            className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-black/50 backdrop-blur-sm transition-colors hover:bg-black/60"
             aria-label={isPlaying ? "Pause video" : "Play video"}
           >
             {isPlaying ? (
@@ -77,11 +80,9 @@ export function ExperienceVideoCard({
           </button>
         )}
       </div>
-      <div className="absolute inset-x-0 top-[376px] flex h-[104px] items-center rounded-b-[20px] bg-white px-5 py-[15px]">
-        <div className="flex flex-col gap-1">
-          <p className="text-lg font-semibold leading-tight text-[#2D3233]">{title}</p>
-          <p className="text-sm font-medium text-[#4A4A4A]">{subtitle}</p>
-        </div>
+      <div className="px-5 py-4">
+        <p className="text-lg font-semibold leading-tight text-[#2D3233]">{title}</p>
+        <p className="mt-1 text-sm font-medium text-[#4A4A4A]">{subtitle}</p>
       </div>
     </article>
   )
