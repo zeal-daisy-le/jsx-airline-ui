@@ -1,6 +1,46 @@
 # CLAUDE.md — JSX Airline UI
 
+## Planning & Documentation
+- PRDs and planning documents go in `docs/prd/` as markdown files — NOT GitHub Issues.
+- `/to-prd` output should be written to `docs/prd/<slug>.md`, not published to the issue tracker.
+- `/to-issues` output should be appended as a task checklist within the relevant PRD file.
+
+## Implementation
+- Ralph MUST use `/tdd` (red-green-refactor) for every implementation task. Write a failing test first, make it pass, then clean up.
+
 ## Architecture
+
+### Project Structure — Bulletproof React
+Follow the [bulletproof-react](https://github.com/alan2207/bulletproof-react/blob/master/docs/project-structure.md) feature-based architecture:
+
+```
+src/
+├── app/          # App layer: routes, providers, router
+├── assets/       # Static files (images, fonts)
+├── components/   # Shared components used across features
+├── config/       # Global config, env variables
+├── features/     # Feature modules (primary organization unit)
+│   └── <feature>/
+│       ├── api/        # Feature API requests and hooks
+│       ├── components/ # Feature-scoped components
+│       ├── hooks/      # Feature-scoped hooks
+│       ├── stores/     # Feature state management
+│       ├── types/      # Feature TypeScript types
+│       └── utils/      # Feature utility functions
+├── hooks/        # Shared custom hooks
+├── lib/          # Preconfigured reusable libraries
+├── stores/       # Global state management
+├── testing/      # Test utilities and mocks
+├── types/        # Shared TypeScript types
+└── utils/        # Shared utility functions
+```
+
+Key rules:
+- **Feature-first**: Organize code by feature, not by type. Each feature is self-contained.
+- **No cross-feature imports**: Features must not import from other features. Compose at the app level.
+- **Unidirectional flow**: shared → features → app. Never import backwards.
+- **Direct imports**: Import files directly, no barrel files (preserves tree-shaking).
+- **Only include what's needed**: A feature folder only has the subfolders it actually uses.
 
 ### Tech Stack
 - **Framework**: Next.js 14 Pages Router (TypeScript)

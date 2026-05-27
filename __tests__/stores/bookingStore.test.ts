@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach } from "vitest"
 import { act } from "@testing-library/react"
-import { useBookingStore } from "@/stores/bookingStore"
-import type { SelectedFlight, PassengerCount, TravelerInfo, BagSelection, SeatAssignment } from "@/stores/bookingStore"
-import { BOOKING_STEPS } from "@/lib/booking/steps"
+import { useBookingStore } from "@/features/booking/stores/bookingStore"
+import type { SelectedFlight, PassengerCount, TravelerInfo, BagSelection, SeatAssignment } from "@/features/booking/stores/bookingStore"
+import { BOOKING_STEPS } from "@/features/booking/utils/steps"
 
 const STORAGE_KEY = "jsx-booking"
 

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest"
 import { act } from "@testing-library/react"
-import { useAuthStore } from "@/stores/authStore"
+import { useAuthStore } from "@/features/auth/stores/authStore"
 
 const ALICE = { id: "u1", email: "alice@jsx.com", firstName: "Alice", lastName: "Smith" }
 

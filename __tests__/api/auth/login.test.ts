@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, vi, afterEach } from "vitest"
 import handler from "@/pages/api/auth/login"
-import { AUTH_COOKIE_NAME } from "@/lib/auth/cookie"
+import { AUTH_COOKIE_NAME } from "@/features/auth/utils/cookie"
 import type { NextApiRequest, NextApiResponse } from "next"
 
 beforeAll(() => {

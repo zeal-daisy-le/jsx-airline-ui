@@ -1,9 +1,9 @@
 import { render, screen, fireEvent, waitFor, act, within } from "@testing-library/react"
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 import BookingConfirmationPage from "@/pages/booking/confirmation"
-import { useBookingStore } from "@/stores/bookingStore"
+import { useBookingStore } from "@/features/booking/stores/bookingStore"
 import { useErrorStore } from "@/stores/errorStore"
-import * as analytics from "@/lib/analytics"
+import * as analytics from "@/features/booking/utils/analytics"
 
 // ── Next.js stubs ─────────────────────────────────────────────────────────────
 

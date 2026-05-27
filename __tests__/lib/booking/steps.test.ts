@@ -6,8 +6,8 @@ import {
   getEarliestIncompleteStep,
   getStepIndex,
   STEP_META,
-} from "@/lib/booking/steps"
-import type { BookingStep } from "@/lib/booking/steps"
+} from "@/features/booking/utils/steps"
+import type { BookingStep } from "@/features/booking/utils/steps"
 
 type Validity = Record<BookingStep, boolean>
 

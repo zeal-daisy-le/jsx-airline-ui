@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll } from "vitest"
 import handler from "@/pages/api/auth/me"
-import { signJWT } from "@/lib/auth/jwt"
-import { AUTH_COOKIE_NAME } from "@/lib/auth/cookie"
+import { signJWT } from "@/features/auth/utils/jwt"
+import { AUTH_COOKIE_NAME } from "@/features/auth/utils/cookie"
 import type { NextApiRequest, NextApiResponse } from "next"
 
 beforeAll(() => {

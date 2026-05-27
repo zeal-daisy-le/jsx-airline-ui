@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from "@testing-library/react"
 import { describe, it, expect, vi } from "vitest"
-import { PassengerStepper } from "@/components/booking/PassengerStepper"
+import { PassengerStepper } from "@/features/booking/components/PassengerStepper"
 
 function renderStepper(overrides: Partial<Parameters<typeof PassengerStepper>[0]> = {}) {
   const onChange = vi.fn()

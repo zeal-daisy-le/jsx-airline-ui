@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from "@testing-library/react"
 import { describe, it, expect, vi } from "vitest"
-import { FlightResultCard } from "@/components/booking/FlightResultCard"
+import { FlightResultCard } from "@/features/booking/components/FlightResultCard"
 import type { FlightResult } from "@/pages/api/search"
 
 const mockFlight: FlightResult = {

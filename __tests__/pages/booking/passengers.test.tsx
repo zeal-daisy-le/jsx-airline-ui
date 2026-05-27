@@ -1,8 +1,8 @@
 import { render, screen, fireEvent, waitFor, act } from "@testing-library/react"
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 import BookingPassengersPage from "@/pages/booking/passengers"
-import { useBookingStore } from "@/stores/bookingStore"
-import * as analytics from "@/lib/analytics"
+import { useBookingStore } from "@/features/booking/stores/bookingStore"
+import * as analytics from "@/features/booking/utils/analytics"
 
 // ── Next.js stubs ─────────────────────────────────────────────────────────────
 
@@ -24,13 +24,13 @@ vi.mock("next/image", () => ({
 
 // ── Booking guard — always allow access in these tests ─────────────────────────
 
-vi.mock("@/hooks/useBookingGuard", () => ({
+vi.mock("@/features/booking/hooks/useBookingGuard", () => ({
   useBookingGuard: () => ({ canAccess: true, isHydrating: false }),
 }))
 
 // ── Layout stubs ───────────────────────────────────────────────────────────────
 
-vi.mock("@/components/booking/BookingLayout", () => ({
+vi.mock("@/features/booking/components/BookingLayout", () => ({
   BookingLayout: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="booking-layout">{children}</div>
   ),
@@ -40,7 +40,7 @@ vi.mock("@/components/layout/SiteHeader", () => ({
   SiteHeader: () => <header data-testid="site-header" />,
 }))
 
-vi.mock("@/components/booking/StepProgress", () => ({
+vi.mock("@/features/booking/components/StepProgress", () => ({
   StepProgress: () => <nav data-testid="step-progress" />,
 }))
 
