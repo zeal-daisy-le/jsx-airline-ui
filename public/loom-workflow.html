@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JSX Airline UI — LOOM Workflow</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            human: { light: '#EFF6FF', DEFAULT: '#3B82F6', dark: '#1E40AF', border: '#93C5FD' },
+            loom:  { light: '#F0FDF4', DEFAULT: '#22C55E', dark: '#166534', border: '#86EFAC' },
+            both:  { light: '#FFF7ED', DEFAULT: '#F97316', dark: '#9A3412', border: '#FDBA74' },
+            phase: { light: '#FAF5FF', DEFAULT: '#A855F7', dark: '#6B21A8', border: '#D8B4FE' },
+            gate:  { light: '#FEF2F2', DEFAULT: '#EF4444', dark: '#991B1B', border: '#FCA5A5' },
+            warp:  { light: '#FFFBEB', DEFAULT: '#F59E0B', dark: '#92400E', border: '#FCD34D' },
+            true:  { light: '#F0FDFA', DEFAULT: '#14B8A6', dark: '#134E4A', border: '#5EEAD4' },
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+    .legend-dot { width: 14px; height: 14px; border-radius: 50%; display: inline-block; }
+    .card { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+    .card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+    .mermaid { display: flex; justify-content: center; }
+    .mermaid svg { max-width: 100%; }
+    .phase-badge { font-size: 0.65rem; letter-spacing: 0.05em; }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-900 antialiased">
+
+  <!-- Header -->
+  <header class="bg-white border-b border-gray-200 sticky top-0 z-10">
+    <div class="max-w-7xl mx-auto px-6 py-5">
+      <h1 class="text-2xl font-bold tracking-tight">JSX Airline UI — LOOM Workflow</h1>
+      <p class="text-gray-500 mt-1">WARP readiness gate, LOOM 8-phase execution loop, TRUE drift detection, and the human developer collaborating end-to-end.</p>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-6 py-10 space-y-14">
+
+    <!-- Legend -->
+    <section class="flex flex-wrap gap-6 items-center bg-white rounded-xl border border-gray-200 px-6 py-4">
+      <span class="text-sm font-semibold text-gray-500 uppercase tracking-wider">Legend</span>
+      <span class="flex items-center gap-2"><span class="legend-dot bg-human"></span><span class="text-sm font-medium">Human (engineer)</span></span>
+      <span class="flex items-center gap-2"><span class="legend-dot bg-loom"></span><span class="text-sm font-medium">LOOM (autonomous)</span></span>
+      <span class="flex items-center gap-2"><span class="legend-dot bg-both"></span><span class="text-sm font-medium">Human + LOOM interactive</span></span>
+      <span class="flex items-center gap-2"><span class="legend-dot bg-phase"></span><span class="text-sm font-medium">Phase / Checkpoint</span></span>
+      <span class="flex items-center gap-2"><span class="legend-dot bg-gate"></span><span class="text-sm font-medium">Hard Gate (approval required)</span></span>
+      <span class="flex items-center gap-2"><span class="legend-dot bg-warp"></span><span class="text-sm font-medium">WARP (readiness)</span></span>
+      <span class="flex items-center gap-2"><span class="legend-dot bg-true"></span><span class="text-sm font-medium">TRUE (drift detection)</span></span>
+    </section>
+
+    <!-- ───────── SYSTEM OVERVIEW ───────── -->
+    <section>
+      <h2 class="text-xl font-bold mb-4">System Overview — WARP + LOOM + TRUE</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="card bg-white rounded-xl border-2 border-warp-border p-6 space-y-3">
+          <h3 class="text-lg font-bold text-warp-dark">WARP</h3>
+          <p class="text-xs font-semibold uppercase tracking-wider text-warp-dark">Readiness Gate</p>
+          <p class="text-sm text-gray-700">Scores every task on 4 dimensions before LOOM execution begins. Flags gaps for Phase 2 resolution.</p>
+          <div class="bg-warp-light rounded-lg p-3 space-y-1">
+            <p class="text-xs font-semibold text-gray-500 uppercase">4 Dimensions</p>
+            <ul class="text-sm text-gray-700 space-y-1">
+              <li>1. Task Definition (clear objective?)</li>
+              <li>2. Acceptance Criteria (measurable?)</li>
+              <li>3. Scope Signals (bounded?)</li>
+              <li>4. Codebase Context (prior art?)</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card bg-white rounded-xl border-2 border-loom-border p-6 space-y-3">
+          <h3 class="text-lg font-bold text-loom-dark">LOOM</h3>
+          <p class="text-xs font-semibold uppercase tracking-wider text-loom-dark">8-Phase Execution Loop</p>
+          <p class="text-sm text-gray-700">Livefront Orchestrated Operations Model. Single-task, worktree-isolated execution from setup through handoff.</p>
+          <div class="bg-loom-light rounded-lg p-3 space-y-1">
+            <p class="text-xs font-semibold text-gray-500 uppercase">8 Phases</p>
+            <p class="text-sm text-gray-700">Setup &rarr; Understand &rarr; Clarify &rarr; Scope &rarr; Plan &rarr; Build &rarr; Verify &rarr; Handoff</p>
+          </div>
+        </div>
+        <div class="card bg-white rounded-xl border-2 border-true-border p-6 space-y-3">
+          <h3 class="text-lg font-bold text-true-dark">TRUE</h3>
+          <p class="text-xs font-semibold uppercase tracking-wider text-true-dark">Drift Detection</p>
+          <p class="text-sm text-gray-700">Scans for drift between CLAUDE.md pointers, guardrail freshness, and exec-plan state. Run weekly or after sprints.</p>
+          <div class="bg-true-light rounded-lg p-3 space-y-1">
+            <p class="text-xs font-semibold text-gray-500 uppercase">Checks</p>
+            <ul class="text-sm text-gray-700 space-y-1">
+              <li>&bull; CLAUDE.md pointers still valid?</li>
+              <li>&bull; Guardrails still fresh?</li>
+              <li>&bull; Failure Memory complete?</li>
+              <li>&bull; Exec-plans in correct state?</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────── MAIN FLOW DIAGRAM ───────── -->
+    <section>
+      <h2 class="text-xl font-bold mb-4">End-to-End LOOM Workflow</h2>
+      <div class="bg-white rounded-xl border border-gray-200 p-8 overflow-x-auto">
+        <pre class="mermaid">
+%%{init: {'theme': 'base', 'themeVariables': {
+  'primaryColor': '#EFF6FF',
+  'primaryTextColor': '#1E40AF',
+  'primaryBorderColor': '#93C5FD',
+  'secondaryColor': '#F0FDF4',
+  'secondaryTextColor': '#166534',
+  'secondaryBorderColor': '#86EFAC',
+  'tertiaryColor': '#FFF7ED',
+  'tertiaryTextColor': '#9A3412',
+  'lineColor': '#6B7280',
+  'fontSize': '14px'
+}}}%%
+flowchart TD
+  classDef human fill:#EFF6FF,stroke:#3B82F6,stroke-width:2px,color:#1E40AF
+  classDef loom fill:#F0FDF4,stroke:#22C55E,stroke-width:2px,color:#166534
+  classDef interactive fill:#FFF7ED,stroke:#F97316,stroke-width:2px,color:#9A3412
+  classDef phase fill:#FAF5FF,stroke:#A855F7,stroke-width:2px,color:#6B21A8
+  classDef gate fill:#FEF2F2,stroke:#EF4444,stroke-width:2px,color:#991B1B
+  classDef warp fill:#FFFBEB,stroke:#F59E0B,stroke-width:2px,color:#92400E
+  classDef trueScan fill:#F0FDFA,stroke:#14B8A6,stroke-width:2px,color:#134E4A
+
+  %% ── Pre-flight ──
+  TASK["Jira ticket assigned\n(task source)"]:::human
+  WARP_GATE{"WARP\nReadiness Gate\nScore >= 2.0?"}:::warp
+  WARP_FAIL["Refine ticket\n(add AC, scope, context)"]:::human
+
+  TASK --> WARP_GATE
+  WARP_GATE -- "Fail" --> WARP_FAIL
+  WARP_FAIL --> WARP_GATE
+
+  %% ── Phase 0: Setup ──
+  P0["Phase 0 — Setup"]:::phase
+  S0A["Create LOOM-ANCHOR\n(compaction-safe checkpoint)"]:::loom
+  S0B["Create git worktree\ndaisy/JSX-{ticket-id}"]:::loom
+  S0C["Audit CLAUDE.md\nLoad guardrails"]:::loom
+  S0D["Detect companion skills\n(TDD build, Figma MCP, Jira)"]:::loom
+
+  WARP_GATE -- "Pass" --> P0
+  P0 --> S0A
+  S0A --> S0B
+  S0B --> S0C
+  S0C --> S0D
+
+  %% ── Phase 1: Understand ──
+  P1["Phase 1 — Understand"]:::phase
+  S1A["Deep-read codebase\nMap affected files & prior art"]:::loom
+
+  S0D --> P1
+  P1 --> S1A
+
+  %% ── Phase 2: Clarify ──
+  P2["Phase 2 — Clarify"]:::phase
+  S2A["Resolve WARP gaps\n(AskUserQuestion)"]:::interactive
+
+  S1A --> P2
+  P2 --> S2A
+
+  %% ── Phase 3: Scope ──
+  P3["Phase 3 — Scope & Guardrails"]:::phase
+  S3A["Define in/out scope\nCheck guardrail contacts"]:::loom
+  GR{"Guardrail\ncontacted?"}:::gate
+  GR_STOP["STOP — Escalate\nto engineer"]:::gate
+
+  S2A --> P3
+  P3 --> S3A
+  S3A --> GR
+  GR -- "Yes" --> GR_STOP
+  GR_STOP --> S2A
+
+  %% ── Phase 4: Plan ──
+  P4["Phase 4 — Plan (Exec-Plan)"]:::phase
+  S4A["Draft exec-plan\ndocs/exec-plans/active/{slug}.md"]:::loom
+  GATE4{"HUMAN GATE\nApprove / Redirect\n/ Reject?"}:::gate
+  GATE4_REDIR["Adjust plan per feedback"]:::loom
+
+  GR -- "No" --> P4
+  P4 --> S4A
+  S4A --> GATE4
+  GATE4 -- "Redirect" --> GATE4_REDIR
+  GATE4_REDIR --> GATE4
+  GATE4 -- "Reject" --> WARP_FAIL
+
+  %% ── Phase 5: Build (TDD) ──
+  P5["Phase 5 — Build (TDD)"]:::phase
+  S5A["RED — Write failing test"]:::loom
+  S5B["GREEN — Minimal implementation"]:::loom
+  S5C["REFACTOR — Clean up"]:::loom
+  S5D["Emit LOOM-STEP marker"]:::loom
+  S5E{"More\nsteps?"}:::phase
+  S5F["Figma MCP check\n(UI steps only)"]:::loom
+
+  GATE4 -- "Approve" --> P5
+  P5 --> S5A
+  S5A --> S5B
+  S5B --> S5C
+  S5C --> S5F
+  S5F --> S5D
+  S5D --> S5E
+  S5E -- "Yes" --> S5A
+  S5E -- "No" --> P6
+
+  %% ── Phase 6: Verify ──
+  P6["Phase 6 — Verify"]:::phase
+  S6A["Self-verify against\nacceptance criteria"]:::loom
+  S6B["CI validation\nnpm test + tsc + lint"]:::loom
+  S6C{"All\npassing?"}:::phase
+  S6D["Fix failures"]:::loom
+
+  P6 --> S6A
+  S6A --> S6B
+  S6B --> S6C
+  S6C -- "No" --> S6D
+  S6D --> S6B
+
+  %% ── Phase 7: Handoff ──
+  P7["Phase 7 — Handoff"]:::phase
+  S7A["Commit & create PR\n(or manual instructions)"]:::loom
+  S7B["Move exec-plan\nactive/ → completed/"]:::loom
+  S7C["Jira: move to In Review\nLink PR to ticket"]:::loom
+  S7D["Handoff summary\nfor engineer"]:::both
+
+  S6C -- "Yes" --> P7
+  P7 --> S7A
+  S7A --> S7B
+  S7B --> S7C
+  S7C --> S7D
+
+  %% ── TRUE (periodic) ──
+  TRUE_SCAN["TRUE — Drift Detection\n(weekly / after sprints)"]:::trueScan
+  S7D --> TRUE_SCAN
+  TRUE_SCAN -. "New task" .-> TASK
+        </pre>
+      </div>
+    </section>
+
+    <!-- ───────── PHASE DETAIL CARDS ───────── -->
+    <section>
+      <h2 class="text-xl font-bold mb-6">LOOM Phase Details</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- WARP -->
+        <div class="card bg-white rounded-xl border-2 border-warp-border p-6 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-bold text-warp-dark">WARP — Readiness Gate</h3>
+            <span class="phase-badge font-semibold uppercase tracking-wider bg-warp-light text-warp-dark px-3 py-1 rounded-full">Pre-flight</span>
+          </div>
+          <p class="text-sm text-gray-600 font-medium">Before LOOM begins</p>
+          <p class="text-sm text-gray-700">Scores every incoming task on 4 dimensions (0&ndash;1 each). Tasks scoring &lt; 2.0 are sent back for refinement. Gaps are recorded for Phase 2 resolution.</p>
+          <div class="bg-warp-light rounded-lg p-3 space-y-1">
+            <p class="text-xs font-semibold text-gray-500 uppercase">Scoring</p>
+            <ul class="text-sm text-gray-700 space-y-1">
+              <li><span class="inline-block w-4 text-center">1.</span> Task Definition — clear objective and type</li>
+              <li><span class="inline-block w-4 text-center">2.</span> Acceptance Criteria — measurable "done"</li>
+              <li><span class="inline-block w-4 text-center">3.</span> Scope Signals — bounded complexity</li>
+              <li><span class="inline-block w-4 text-center">4.</span> Codebase Context — prior art and affected files</li>
+            </ul>
+          </div>
+          <div class="bg-gray-50 rounded-lg p-3 space-y-1">
+            <p class="text-xs font-semibold text-gray-500 uppercase">Inputs &rarr; Outputs</p>
+            <p class="text-sm text-gray-700">Jira ticket &rarr; Readiness score + gap list + WARP intake summary</p>
+          </div>
+        </div>
+
+        <!-- Phase 0 -->
+        <div class="card bg-white rounded-xl border-2 border-loom-border p-6 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-bold text-loom-dark">Phase 0 — Setup</h3>
+            <span class="phase-badge font-semibold uppercase tracking-wider bg-loom-light text-loom-dark px-3 py-1 rounded-full">LOOM</span>
+          </div>
+          <p class="text-sm text-gray-600 font-medium">Initialize execution environment</p>
+          <p class="text-sm text-gray-700">Creates the LOOM-ANCHOR (compaction-safe checkpoint), sets up a git worktree for isolation, audits CLAUDE.md for guardrails, and detects available companion skills.</p>
+          <div class="bg-loom-light rounded-lg p-3 space-y-1">
+            <p class="text-xs font-semibold text-gray-500 uppercase">Setup checklist</p>
+            <ul class="text-sm text-gray-700 space-y-1">
+              <li>&bull; LOOM-ANCHOR created or resumed</li>
+              <li>&bull; Worktree: <code class="bg-gray-100 px-1 rounded">git worktree add ../jsx-{id} -b daisy/JSX-{id}</code></li>
+              <li>&bull; CLAUDE.md guardrails loaded (6 hard stops)</li>
+              <li>&bull; Skills detected: TDD build, Figma MCP, acli-jira</li>
+            </ul>
+          </div>
+          <div class="bg-gray-50 rounded-lg p-3 space-y-1">
+            <p class="text-xs font-semibold text-gray-500 uppercase">Inputs &rarr; Outputs</p>
+            <p class="text-sm text-gray-700">WARP intake &rarr; Worktree + anchor + guardrails loaded</p>
+          </div>
+        </div>
+
+        <!-- Phase 1 -->
+        <div class="card bg-white rounded-xl border-2 border-loom-border p-6 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-bold text-loom-dark">Phase 1 — Understand</h3>
+            <span class="phase-badge font-semibold uppercase tracking-wider bg-loom-light text-loom-dark px-3 py-1 rounded-full">LOOM</span>
+          </div>
+          <p class="text-sm text-gray-600 font-medium">Deep-read the codebase</p>
+          <p class="text-sm text-gray-700">Maps affected files, reads prior art and completed work from CLAUDE.md. Builds a mental model of the codebase surface area relevant to the task.</p>
+          <div class="bg-gray-50 rounded-lg p-3 space-y-1">
+            <p class="text-xs font-semibold text-gray-500 uppercase">Inputs &rarr; Outputs</p>
+            <p class="text-sm text-gray-700">Task definition &rarr; Codebase context map, affected file list, prior art references</p>
+          </div>
+        </div>
+
+        <!-- Phase 2 -->
+        <div class="card bg-white rounded-xl border-2 border-both-border p-6 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-bold text-both-dark">Phase 2 — Clarify</h3>
+            <span class="phase-badge font-semibold uppercase tracking-wider bg-both-light text-both-dark px-3 py-1 rounded-full">Interactive</span>
+          </div>
+          <p class="text-sm text-gray-600 font-medium">Resolve ambiguity with the engineer</p>
+          <p class="text-sm text-gray-700">Addresses every gap flagged by WARP. Uses <code>AskUserQuestion</code> to get engineer decisions on budget, scope boundaries, technical approach, and acceptance criteria.</p>
+          <div class="bg-both-light rounded-lg p-3 space-y-1">
+            <p class="text-xs font-semibold text-gray-500 uppercase">Rule</p>
+            <p class="text-sm text-gray-700">LOOM does not guess. Every ambiguity is resolved here before scoping.</p>
+          </div>
+          <div class="bg-gray-50 rounded-lg p-3 space-y-1">
+            <p class="text-xs font-semibold text-gray-500 uppercase">Inputs &rarr; Outputs</p>
+            <p class="text-sm text-gray-700">WARP gap list &rarr; All gaps resolved with engineer decisions</p>
+          </div>
+        </div>
+
+        <!-- Phase 3 -->
+        <div class="card bg-white rounded-xl border-2 border-gate-border p-6 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-bold text-gate-dark">Phase 3 — Scope & Guardrails</h3>
+            <span class="phase-badge font-semibold uppercase tracking-wider bg-gate-light text-gate-dark px-3 py-1 rounded-full">Guardrails</span>
+          </div>
+          <p class="text-sm text-gray-600 font-medium">Define boundaries, check for hard stops</p>
+          <p class="text-sm text-gray-700">Defines in-scope / out-of-scope boundaries. Checks every planned change against the 6 CLAUDE.md guardrails. Guardrail contact = <strong>STOP and escalate immediately</strong>.</p>
+          <div class="bg-gate-light rounded-lg p-3 space-y-2">
+            <p class="text-xs font-semibold text-gray-500 uppercase">6 Guardrails (CLAUDE.md)</p>
+            <ol class="text-sm text-gray-700 space-y-1 list-decimal list-inside">
+              <li>BFF credentials server-side only (no Navitaire keys in client code)</li>
+              <li>Auth middleware changes require human review</li>
+              <li>Booking step order defined in <code>lib/booking/steps.ts</code> only</li>
+              <li>Session storage secrets never server-logged</li>
+              <li>WCAG 2.1 AA mandatory (axe-core)</li>
+              <li>Figma design match for all UI work</li>
+            </ol>
+          </div>
+        </div>
+
+        <!-- Phase 4 -->
+        <div class="card bg-white rounded-xl border-2 border-gate-border p-6 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-bold text-gate-dark">Phase 4 — Plan (Exec-Plan)</h3>
+            <span class="phase-badge font-semibold uppercase tracking-wider bg-gate-light text-gate-dark px-3 py-1 rounded-full">Hard Gate</span>
+          </div>
+          <p class="text-sm text-gray-600 font-medium">Draft plan &rarr; Human approval required</p>
+          <p class="text-sm text-gray-700">LOOM drafts a step-by-step exec-plan and commits it to <code>docs/exec-plans/active/{slug}.md</code>. The engineer must <strong>Approve</strong>, <strong>Redirect</strong>, or <strong>Reject</strong> before Phase 5 begins. No auto-approve.</p>
+          <div class="bg-gate-light rounded-lg p-3 space-y-1">
+            <p class="text-xs font-semibold text-gray-500 uppercase">Gate Options</p>
+            <ul class="text-sm text-gray-700 space-y-1">
+              <li><strong>Approve</strong> &rarr; Proceed to Phase 5 Build</li>
+              <li><strong>Redirect</strong> &rarr; Adjust plan, re-present</li>
+              <li><strong>Reject</strong> &rarr; Return to WARP for re-scoping</li>
+            </ul>
+          </div>
+          <div class="bg-gray-50 rounded-lg p-3 space-y-1">
+            <p class="text-xs font-semibold text-gray-500 uppercase">Inputs &rarr; Outputs</p>
+            <p class="text-sm text-gray-700">Scope + codebase context &rarr; <code>docs/exec-plans/active/{slug}.md</code> (approved)</p>
+          </div>
+        </div>
+
+        <!-- Phase 5 -->
+        <div class="card bg-white rounded-xl border-2 border-loom-border p-6 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-bold text-loom-dark">Phase 5 — Build (TDD)</h3>
+            <span class="phase-badge font-semibold uppercase tracking-wider bg-loom-light text-loom-dark px-3 py-1 rounded-full">LOOM + /loom-tdd-build</span>
+          </div>
+          <p class="text-sm text-gray-600 font-medium">Test-first implementation per exec-plan step</p>
+          <p class="text-sm text-gray-700">Custom Phase 5 replacement using <code>/loom-tdd-build</code> skill. Strict RED &rarr; GREEN &rarr; REFACTOR discipline. Vertical slices only &mdash; one test, one implementation, repeat. Never write all tests first.</p>
+          <div class="bg-loom-light rounded-lg p-3 space-y-2">
+            <p class="text-xs font-semibold text-gray-500 uppercase">TDD Cycle (per exec-plan step)</p>
+            <ol class="text-sm text-gray-700 space-y-1 list-decimal list-inside">
+              <li><strong class="text-red-600">RED</strong> &mdash; Write a failing test (behavior, not implementation)</li>
+              <li><strong class="text-green-600">GREEN</strong> &mdash; Minimal code to make it pass</li>
+              <li><strong class="text-blue-600">REFACTOR</strong> &mdash; Clean up (never refactor while red)</li>
+              <li>Figma MCP check (UI steps only)</li>
+              <li>Emit LOOM-STEP marker with test counts</li>
+              <li>Repeat for next step</li>
+            </ol>
+          </div>
+          <div class="bg-gray-50 rounded-lg p-3 space-y-1">
+            <p class="text-xs font-semibold text-gray-500 uppercase">Anti-patterns (blocked)</p>
+            <p class="text-sm text-gray-700">No horizontal slicing, no speculative code, no skipping RED, no mocking internals, no silent scope expansion</p>
+          </div>
+        </div>
+
+        <!-- Phase 6 -->
+        <div class="card bg-white rounded-xl border-2 border-loom-border p-6 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-bold text-loom-dark">Phase 6 — Verify</h3>
+            <span class="phase-badge font-semibold uppercase tracking-wider bg-loom-light text-loom-dark px-3 py-1 rounded-full">LOOM</span>
+          </div>
+          <p class="text-sm text-gray-600 font-medium">Self-verification + CI validation</p>
+          <p class="text-sm text-gray-700">Checks every acceptance criterion from the exec-plan. Runs full CI suite: <code>npm test</code>, <code>npx tsc --noEmit</code>, <code>npx next lint</code>. All must pass before handoff.</p>
+          <div class="bg-gray-50 rounded-lg p-3 space-y-1">
+            <p class="text-xs font-semibold text-gray-500 uppercase">Inputs &rarr; Outputs</p>
+            <p class="text-sm text-gray-700">Implemented code + tests &rarr; Verification report (pass/fail per criterion)</p>
+          </div>
+        </div>
+
+        <!-- Phase 7 -->
+        <div class="card bg-white rounded-xl border-2 border-both-border p-6 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-bold text-both-dark">Phase 7 — Handoff</h3>
+            <span class="phase-badge font-semibold uppercase tracking-wider bg-both-light text-both-dark px-3 py-1 rounded-full">LOOM + Human</span>
+          </div>
+          <p class="text-sm text-gray-600 font-medium">Commit, PR, Jira update, exec-plan archive</p>
+          <p class="text-sm text-gray-700">Creates commit and PR (or provides manual instructions). Moves exec-plan from <code>active/</code> to <code>completed/</code>. Updates Jira ticket to "In Review" and links the PR. Delivers handoff summary.</p>
+          <div class="bg-both-light rounded-lg p-3 space-y-2">
+            <p class="text-xs font-semibold text-gray-500 uppercase">Handoff Checklist</p>
+            <ul class="text-sm text-gray-700 space-y-1">
+              <li>&bull; Commit & push to feature branch</li>
+              <li>&bull; Create PR with summary + test plan</li>
+              <li>&bull; Jira &rarr; "In Review" + PR link</li>
+              <li>&bull; Exec-plan: <code>active/</code> &rarr; <code>completed/</code></li>
+              <li>&bull; Clean up LOOM-ANCHOR sentinel</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- TRUE -->
+        <div class="card bg-white rounded-xl border-2 border-true-border p-6 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-bold text-true-dark">TRUE — Drift Detection</h3>
+            <span class="phase-badge font-semibold uppercase tracking-wider bg-true-light text-true-dark px-3 py-1 rounded-full">Periodic</span>
+          </div>
+          <p class="text-sm text-gray-600 font-medium">Weekly or after sprints</p>
+          <p class="text-sm text-gray-700">Scans for configuration drift between LOOM runs. Ensures CLAUDE.md pointers are valid, guardrails are fresh, failure memory is complete (after 20+ merged PRs), and no exec-plans are stuck in <code>active/</code>.</p>
+          <div class="bg-true-light rounded-lg p-3 space-y-1">
+            <p class="text-xs font-semibold text-gray-500 uppercase">Flags raised if</p>
+            <ul class="text-sm text-gray-700 space-y-1">
+              <li>&bull; CLAUDE.md file paths point to deleted files</li>
+              <li>&bull; Guardrail files were modified without review</li>
+              <li>&bull; Failure Memory section missing on mature repos</li>
+              <li>&bull; Exec-plans stuck in <code>active/</code> for &gt; 2 weeks</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ───────── LOOM DETAIL ───────── -->
+    <section>
+      <h2 class="text-xl font-bold mb-4">LOOM — Execution Engine</h2>
+      <div class="bg-white rounded-xl border-2 border-loom-border p-8 space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div class="space-y-2">
+            <p class="text-xs font-semibold text-gray-500 uppercase">Task Source</p>
+            <p class="text-sm"><code class="bg-gray-100 px-2 py-0.5 rounded">Jira (acli-jira)</code></p>
+          </div>
+          <div class="space-y-2">
+            <p class="text-xs font-semibold text-gray-500 uppercase">Branch Pattern</p>
+            <p class="text-sm"><code class="bg-gray-100 px-2 py-0.5 rounded">daisy/JSX-{id}</code></p>
+          </div>
+          <div class="space-y-2">
+            <p class="text-xs font-semibold text-gray-500 uppercase">Isolation</p>
+            <p class="text-sm"><code class="bg-gray-100 px-2 py-0.5 rounded">git worktree</code></p>
+          </div>
+          <div class="space-y-2">
+            <p class="text-xs font-semibold text-gray-500 uppercase">Exec-Plans</p>
+            <p class="text-sm"><code class="bg-gray-100 px-2 py-0.5 rounded">docs/exec-plans/</code></p>
+          </div>
+        </div>
+
+        <div class="bg-loom-light rounded-lg p-5">
+          <h4 class="font-semibold text-loom-dark mb-3">Per-task execution (single-task model)</h4>
+          <ol class="text-sm text-gray-700 space-y-2 list-decimal list-inside">
+            <li><strong>WARP</strong> scores the Jira ticket on 4 readiness dimensions</li>
+            <li><strong>Phase 0</strong> creates worktree, loads guardrails, detects skills</li>
+            <li><strong>Phase 1</strong> deep-reads codebase, maps affected files</li>
+            <li><strong>Phase 2</strong> resolves all WARP gaps via engineer interaction</li>
+            <li><strong>Phase 3</strong> defines scope boundaries, checks guardrails</li>
+            <li><strong>Phase 4</strong> drafts exec-plan &rarr; <strong class="text-red-600">human approval gate</strong></li>
+            <li><strong>Phase 5</strong> implements via TDD (RED &rarr; GREEN &rarr; REFACTOR per step)</li>
+            <li><strong>Phase 6</strong> self-verifies + runs CI (npm test, tsc, lint)</li>
+            <li><strong>Phase 7</strong> commits, creates PR, updates Jira, archives exec-plan</li>
+          </ol>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-gray-50 rounded-lg p-4">
+            <h5 class="text-xs font-semibold text-gray-500 uppercase mb-2">Compaction Safety</h5>
+            <p class="text-sm text-gray-700">LOOM-ANCHOR markers at every phase boundary survive context compaction. If the context window fills mid-task, LOOM can resume from the last anchor.</p>
+          </div>
+          <div class="bg-gray-50 rounded-lg p-4">
+            <h5 class="text-xs font-semibold text-gray-500 uppercase mb-2">Scope Change Protocol</h5>
+            <p class="text-sm text-gray-700">If implementation reveals unexpected scope: <strong>STOP immediately</strong>. Do not silently expand. Flag to engineer, get approval, then update exec-plan before continuing.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────── RESPONSIBILITY MATRIX ───────── -->
+    <section>
+      <h2 class="text-xl font-bold mb-4">Responsibility Matrix — Who Does What</h2>
+      <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+              <th class="text-left px-6 py-3 font-semibold text-gray-600">Activity</th>
+              <th class="text-center px-4 py-3 font-semibold text-human-dark">Human</th>
+              <th class="text-center px-4 py-3 font-semibold text-loom-dark">LOOM</th>
+              <th class="text-left px-6 py-3 font-semibold text-gray-600">Phase / Tool</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            <tr>
+              <td class="px-6 py-3">Create Jira ticket</td>
+              <td class="text-center px-4 py-3">&#x2705;</td>
+              <td class="text-center px-4 py-3">&mdash;</td>
+              <td class="px-6 py-3 text-gray-500">Pre-flight</td>
+            </tr>
+            <tr class="bg-gray-50/50">
+              <td class="px-6 py-3">Score task readiness</td>
+              <td class="text-center px-4 py-3">&mdash;</td>
+              <td class="text-center px-4 py-3">&#x2705;</td>
+              <td class="px-6 py-3"><code>WARP</code></td>
+            </tr>
+            <tr>
+              <td class="px-6 py-3">Refine ticket (if WARP fails)</td>
+              <td class="text-center px-4 py-3">&#x2705;</td>
+              <td class="text-center px-4 py-3">&mdash;</td>
+              <td class="px-6 py-3">Pre-flight</td>
+            </tr>
+            <tr class="bg-gray-50/50">
+              <td class="px-6 py-3">Create worktree & load guardrails</td>
+              <td class="text-center px-4 py-3">&mdash;</td>
+              <td class="text-center px-4 py-3">&#x2705;</td>
+              <td class="px-6 py-3">Phase 0 &mdash; Setup</td>
+            </tr>
+            <tr>
+              <td class="px-6 py-3">Deep-read codebase</td>
+              <td class="text-center px-4 py-3">&mdash;</td>
+              <td class="text-center px-4 py-3">&#x2705;</td>
+              <td class="px-6 py-3">Phase 1 &mdash; Understand</td>
+            </tr>
+            <tr class="bg-gray-50/50">
+              <td class="px-6 py-3">Answer clarifying questions</td>
+              <td class="text-center px-4 py-3">&#x2705;</td>
+              <td class="text-center px-4 py-3">&#x2705; asks</td>
+              <td class="px-6 py-3">Phase 2 &mdash; Clarify</td>
+            </tr>
+            <tr>
+              <td class="px-6 py-3">Define scope & check guardrails</td>
+              <td class="text-center px-4 py-3">&mdash;</td>
+              <td class="text-center px-4 py-3">&#x2705;</td>
+              <td class="px-6 py-3">Phase 3 &mdash; Scope</td>
+            </tr>
+            <tr class="bg-gray-50/50">
+              <td class="px-6 py-3">Escalate guardrail contact</td>
+              <td class="text-center px-4 py-3">&#x2705; decides</td>
+              <td class="text-center px-4 py-3">&#x2705; flags</td>
+              <td class="px-6 py-3">Phase 3 &mdash; Hard stop</td>
+            </tr>
+            <tr>
+              <td class="px-6 py-3">Draft exec-plan</td>
+              <td class="text-center px-4 py-3">&mdash;</td>
+              <td class="text-center px-4 py-3">&#x2705;</td>
+              <td class="px-6 py-3">Phase 4 &mdash; Plan</td>
+            </tr>
+            <tr class="bg-gray-50/50">
+              <td class="px-6 py-3 font-semibold text-gate-dark">Approve / Redirect / Reject plan</td>
+              <td class="text-center px-4 py-3">&#x2705; <span class="text-xs text-gate-dark font-bold">GATE</span></td>
+              <td class="text-center px-4 py-3">&mdash;</td>
+              <td class="px-6 py-3"><code>Phase 4 Gate</code> &mdash; No auto-approve</td>
+            </tr>
+            <tr>
+              <td class="px-6 py-3">Write failing test (RED)</td>
+              <td class="text-center px-4 py-3">&mdash;</td>
+              <td class="text-center px-4 py-3">&#x2705;</td>
+              <td class="px-6 py-3">Phase 5 &mdash; <code>/loom-tdd-build</code></td>
+            </tr>
+            <tr class="bg-gray-50/50">
+              <td class="px-6 py-3">Minimal implementation (GREEN)</td>
+              <td class="text-center px-4 py-3">&mdash;</td>
+              <td class="text-center px-4 py-3">&#x2705;</td>
+              <td class="px-6 py-3">Phase 5 &mdash; <code>/loom-tdd-build</code></td>
+            </tr>
+            <tr>
+              <td class="px-6 py-3">Refactor & clean up</td>
+              <td class="text-center px-4 py-3">&mdash;</td>
+              <td class="text-center px-4 py-3">&#x2705;</td>
+              <td class="px-6 py-3">Phase 5 &mdash; <code>/loom-tdd-build</code></td>
+            </tr>
+            <tr class="bg-gray-50/50">
+              <td class="px-6 py-3">Check Figma design match (UI)</td>
+              <td class="text-center px-4 py-3">&mdash;</td>
+              <td class="text-center px-4 py-3">&#x2705;</td>
+              <td class="px-6 py-3">Phase 5 &mdash; Figma MCP</td>
+            </tr>
+            <tr>
+              <td class="px-6 py-3">Self-verify against acceptance criteria</td>
+              <td class="text-center px-4 py-3">&mdash;</td>
+              <td class="text-center px-4 py-3">&#x2705;</td>
+              <td class="px-6 py-3">Phase 6 &mdash; Verify</td>
+            </tr>
+            <tr class="bg-gray-50/50">
+              <td class="px-6 py-3">Run CI (test + tsc + lint)</td>
+              <td class="text-center px-4 py-3">&mdash;</td>
+              <td class="text-center px-4 py-3">&#x2705;</td>
+              <td class="px-6 py-3">Phase 6 &mdash; CI validation</td>
+            </tr>
+            <tr>
+              <td class="px-6 py-3">Commit, PR, Jira update</td>
+              <td class="text-center px-4 py-3">&mdash;</td>
+              <td class="text-center px-4 py-3">&#x2705;</td>
+              <td class="px-6 py-3">Phase 7 &mdash; Handoff</td>
+            </tr>
+            <tr class="bg-gray-50/50">
+              <td class="px-6 py-3">Review PR & merge</td>
+              <td class="text-center px-4 py-3">&#x2705;</td>
+              <td class="text-center px-4 py-3">&mdash;</td>
+              <td class="px-6 py-3">Post-handoff</td>
+            </tr>
+            <tr>
+              <td class="px-6 py-3">Run drift detection</td>
+              <td class="text-center px-4 py-3">&#x2705; triggers</td>
+              <td class="text-center px-4 py-3">&#x2705; scans</td>
+              <td class="px-6 py-3"><code>TRUE</code> &mdash; weekly / after sprints</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ───────── SWIMLANE DIAGRAM ───────── -->
+    <section>
+      <h2 class="text-xl font-bold mb-4">Swimlane — Handoffs Between Human & LOOM</h2>
+      <div class="bg-white rounded-xl border border-gray-200 p-8 overflow-x-auto">
+        <pre class="mermaid">
+sequenceDiagram
+  participant H as Engineer
+  participant W as WARP
+  participant L as LOOM
+  participant J as Jira
+  participant GH as GitHub / CI
+
+  Note over H,W: Pre-flight — Readiness Gate
+  H->>J: Create / assign Jira ticket
+  H->>W: Trigger WARP scoring
+  W->>W: Score on 4 dimensions
+  alt Score < 2.0
+    W->>H: Gaps flagged — refine ticket
+    H->>W: Re-score
+  end
+  W->>L: Pass — WARP intake handed to LOOM
+
+  Note over L: Phase 0 — Setup
+  L->>L: Create LOOM-ANCHOR
+  L->>GH: Create worktree (daisy/JSX-{id})
+  L->>L: Audit CLAUDE.md, load guardrails
+  L->>J: Move ticket to In Progress
+
+  Note over L: Phase 1 — Understand
+  L->>L: Deep-read codebase
+  L->>L: Map affected files & prior art
+
+  Note over H,L: Phase 2 — Clarify
+  L->>H: AskUserQuestion (resolve WARP gaps)
+  H->>L: Answers & decisions
+
+  Note over L: Phase 3 — Scope & Guardrails
+  L->>L: Define in/out scope
+  L->>L: Check guardrails (6 hard stops)
+  alt Guardrail contacted
+    L->>H: STOP — escalate immediately
+    H->>L: Decision (proceed / re-scope)
+  end
+
+  Note over H,L: Phase 4 — Plan (GATE)
+  L->>L: Draft exec-plan
+  L->>GH: Commit to docs/exec-plans/active/
+  L->>H: Present plan for approval
+  alt Redirect
+    H->>L: Feedback
+    L->>L: Adjust plan
+    L->>H: Re-present
+  end
+  H->>L: Approve
+
+  Note over L: Phase 5 — Build (TDD)
+  loop For each exec-plan step
+    L->>L: RED — write failing test
+    L->>L: GREEN — minimal implementation
+    L->>L: REFACTOR — clean up
+    L->>L: Emit LOOM-STEP marker
+  end
+
+  Note over L: Phase 6 — Verify
+  L->>L: Check acceptance criteria
+  L->>L: npm test + tsc + lint
+
+  Note over L,GH: Phase 7 — Handoff
+  L->>GH: Commit & create PR
+  L->>J: Move ticket to In Review + link PR
+  L->>L: Move exec-plan to completed/
+  L->>H: Handoff summary
+
+  Note over H: Post-Handoff
+  H->>GH: Review PR
+  GH->>GH: CI: Playwright + Lighthouse
+  H->>GH: Merge to main
+
+  Note over H,L: Periodic — TRUE Drift Detection
+  H->>L: Trigger TRUE scan
+  L->>L: Check CLAUDE.md, guardrails, exec-plans
+  L->>H: Drift report (if any)
+        </pre>
+      </div>
+    </section>
+
+    <!-- ───────── TOOLS & INTEGRATIONS ───────── -->
+    <section>
+      <h2 class="text-xl font-bold mb-4">Tools & Integrations</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+        <div class="card bg-white rounded-xl border border-gray-200 p-6 space-y-3">
+          <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-lg bg-loom-light flex items-center justify-center text-lg">&#x1F9EA;</div>
+            <div>
+              <h3 class="font-bold text-gray-900">/loom-tdd-build</h3>
+              <p class="text-xs text-gray-500">Phase 5 replacement</p>
+            </div>
+          </div>
+          <p class="text-sm text-gray-700">Custom TDD build loop. RED &rarr; GREEN &rarr; REFACTOR per exec-plan step. Emits LOOM-STEP markers. Enforces vertical slices.</p>
+        </div>
+
+        <div class="card bg-white rounded-xl border border-gray-200 p-6 space-y-3">
+          <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-lg bg-phase-light flex items-center justify-center text-lg">&#x1F3A8;</div>
+            <div>
+              <h3 class="font-bold text-gray-900">Figma MCP</h3>
+              <p class="text-xs text-gray-500">Phase 5 (UI steps)</p>
+            </div>
+          </div>
+          <p class="text-sm text-gray-700">Design fidelity checks via <code>mcp__plugin_figma_figma__*</code> tools. File key <code>8TPHDvgnAX08HgIZlja3jK</code>. Match colors, spacing, typography exactly.</p>
+        </div>
+
+        <div class="card bg-white rounded-xl border border-gray-200 p-6 space-y-3">
+          <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-lg bg-human-light flex items-center justify-center text-lg">&#x1F4CB;</div>
+            <div>
+              <h3 class="font-bold text-gray-900">Jira (acli-jira)</h3>
+              <p class="text-xs text-gray-500">Phase 0 + Phase 7</p>
+            </div>
+          </div>
+          <p class="text-sm text-gray-700">Task source and status transitions. Phase 0: In Progress. Phase 7: In Review + PR link. Pending port to agent-skills.</p>
+        </div>
+
+        <div class="card bg-white rounded-xl border border-gray-200 p-6 space-y-3">
+          <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-lg bg-gate-light flex items-center justify-center text-lg">&#x1F512;</div>
+            <div>
+              <h3 class="font-bold text-gray-900">Guardrails</h3>
+              <p class="text-xs text-gray-500">Phase 3 (always active)</p>
+            </div>
+          </div>
+          <p class="text-sm text-gray-700">6 hard stops from CLAUDE.md. BFF creds, auth middleware, booking steps, session secrets, WCAG AA, Figma match. Contact = STOP.</p>
+        </div>
+
+        <div class="card bg-white rounded-xl border border-gray-200 p-6 space-y-3">
+          <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-lg bg-both-light flex items-center justify-center text-lg">&#x1F4DD;</div>
+            <div>
+              <h3 class="font-bold text-gray-900">Exec-Plans</h3>
+              <p class="text-xs text-gray-500">Phase 4 + Phase 7</p>
+            </div>
+          </div>
+          <p class="text-sm text-gray-700">Step-by-step implementation plans committed to <code>docs/exec-plans/active/</code>. Moved to <code>completed/</code> at handoff. TRUE checks for stale plans.</p>
+        </div>
+
+        <div class="card bg-white rounded-xl border border-gray-200 p-6 space-y-3">
+          <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-lg bg-true-light flex items-center justify-center text-lg">&#x1F50D;</div>
+            <div>
+              <h3 class="font-bold text-gray-900">TRUE Scan</h3>
+              <p class="text-xs text-gray-500">Periodic</p>
+            </div>
+          </div>
+          <p class="text-sm text-gray-700">Drift detection for CLAUDE.md pointers, guardrail freshness, failure memory, and exec-plan state. Run weekly or after sprints.</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ───────── COMPARISON: RALPH vs LOOM ───────── -->
+    <section>
+      <h2 class="text-xl font-bold mb-4">Migration Reference — Ralph vs LOOM</h2>
+      <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+              <th class="text-left px-6 py-3 font-semibold text-gray-600">Aspect</th>
+              <th class="text-left px-4 py-3 font-semibold text-gray-400">Ralph (previous)</th>
+              <th class="text-left px-4 py-3 font-semibold text-loom-dark">LOOM (current)</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            <tr>
+              <td class="px-6 py-3 font-medium">Execution model</td>
+              <td class="px-4 py-3 text-gray-500">Batch loop &mdash; pick issue, implement, repeat</td>
+              <td class="px-4 py-3">8-phase single-task loop with gates</td>
+            </tr>
+            <tr class="bg-gray-50/50">
+              <td class="px-6 py-3 font-medium">Task source</td>
+              <td class="px-4 py-3 text-gray-500">GitHub Issues (PRD children)</td>
+              <td class="px-4 py-3">Jira tickets</td>
+            </tr>
+            <tr>
+              <td class="px-6 py-3 font-medium">Planning</td>
+              <td class="px-4 py-3 text-gray-500"><code>/to-prd</code> + <code>/to-issues</code></td>
+              <td class="px-4 py-3">WARP readiness &rarr; Phase 4 exec-plan (committed artifact)</td>
+            </tr>
+            <tr class="bg-gray-50/50">
+              <td class="px-6 py-3 font-medium">Human approval</td>
+              <td class="px-4 py-3 text-gray-500">Post-implementation review</td>
+              <td class="px-4 py-3">Phase 4 gate <strong>before</strong> build begins</td>
+            </tr>
+            <tr>
+              <td class="px-6 py-3 font-medium">TDD enforcement</td>
+              <td class="px-4 py-3 text-gray-500"><code>/tdd</code> skill (convention)</td>
+              <td class="px-4 py-3"><code>/loom-tdd-build</code> (structural &mdash; Phase 5 replacement)</td>
+            </tr>
+            <tr class="bg-gray-50/50">
+              <td class="px-6 py-3 font-medium">Isolation</td>
+              <td class="px-4 py-3 text-gray-500">Single branch (<code>ralph/prd-N</code>)</td>
+              <td class="px-4 py-3">Git worktree per ticket</td>
+            </tr>
+            <tr>
+              <td class="px-6 py-3 font-medium">Guardrails</td>
+              <td class="px-4 py-3 text-gray-500">CLAUDE.md rules (advisory)</td>
+              <td class="px-4 py-3">6 hard stops loaded in Phase 3 (enforced)</td>
+            </tr>
+            <tr class="bg-gray-50/50">
+              <td class="px-6 py-3 font-medium">Compaction safety</td>
+              <td class="px-4 py-3 text-gray-500">Progress files (<code>.ralph/progress/</code>)</td>
+              <td class="px-4 py-3">LOOM-ANCHOR markers at phase boundaries</td>
+            </tr>
+            <tr>
+              <td class="px-6 py-3 font-medium">Drift detection</td>
+              <td class="px-4 py-3 text-gray-500">None</td>
+              <td class="px-4 py-3">TRUE scan (weekly / after sprints)</td>
+            </tr>
+            <tr class="bg-gray-50/50">
+              <td class="px-6 py-3 font-medium">Design system</td>
+              <td class="px-4 py-3 text-gray-500">Figma MCP (manual reference)</td>
+              <td class="px-4 py-3">Figma MCP (structural &mdash; Phase 5 UI steps)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="text-center text-xs text-gray-400 py-6 border-t border-gray-200">
+      JSX Airline UI &mdash; LOOM Workflow Diagram &mdash; Generated 2026-05-28
+    </footer>
+
+  </main>
+
+  <script>mermaid.initialize({ startOnLoad: true, securityLevel: 'loose' });</script>
+</body>
+</html>
